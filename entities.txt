@@ -1,0 +1,37 @@
+2 races
+1 city
+1 forrest
+1 dungeon
+1 suburbs
+1 palast
+
+monsters:
+
+slime
+rat queen
+ratling
+goul
+cursed vermin
+necromancer
+cursed knight
+undead bandit
+oger
+troll
+phantom
+
+cat
+dog
+sheep
+rat
+bat
+
+trees grow
+grass / weat grows
+snow falls
+cover inside areas
+put items in chest
+place items in world
+water flows into dug holes
+water freezes to ice
+wheat, tall grass, trees, bushes catch fire
+corpses rott

@@ -1,0 +1,59 @@
+step2)
+
+create map file on start server
+load map file on join server(download from server)
+worldScreen : contentFrame
+move around map with collision
+talk with npc
+sync player pos to server
+enable cmd mode on server
+move player via commands as well
+
+
+step3)
+
+host server expects path input
+creates hole bunch of default files
+starts server
+
+join server expects ip and port input
+joins a server, creates a player, spawns a player, gets map inf, draws map
+
+server then enables cmd mode and shows callback debugs
+
+content frame to draw map
+content frame to draw player
+content frame to draw currentTile & interactions
+
+add start jingle (wizzardOfWor sound)
+
+store last server path
+store last ip & port
+
+step4)
+
+lvl editor
+music editor
+account system (stored on individual server)
+
+class account
+
+string name
+guid password
+email? email
+
+step5)
+
+run server lua scripts
+
+
+
+
+map editor:
+
+define construction zone
+enable dynamic map editing (send changes imediately to clients)
+place a tile at cursor
+clear a tile at cursor
+add data to tile
+add event to tile

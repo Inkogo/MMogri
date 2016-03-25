@@ -1,0 +1,14 @@
+hte:
+
+store players in db
+create db and add / find entries
+draw map with tileset
+lua script func binds to input (on server)
+bind actions to keys xml on client
+load xmls propperly
+tick tiles
+
+zB water:
+
+how handle tiles and mobs? are they lua stuff or are they hardcoded?
+test out lua with custom classes

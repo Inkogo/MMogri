@@ -1,0 +1,16 @@
+draw map with tileset
+load map and tileset
+tick tiles
+draw current tile in infoScreen
+draw light in infoScreen
+draw time of day in infoScreen
+draw day + month + year in infoScreen
+draw inputs in infoScreen
+read inputs + keys from playerInput.xml
+iterate through inputs and call api function stuff
+implement lua interpreter
+bind lua to maps
+bind lua to inputs
+server autoTick ticks tiles, entities, globals, screens
+add basic light system (minecraft like) + daylight
+tile has covered bool
