@@ -12,21 +12,25 @@ namespace MMogri
 {
     class GameLoader
     {
-        public List<RaceInf> raceInf;
-        public List<CharacterClassInf> charaInf;
-        public List<Map> maps;
-        public List<Tileset> tilesets;
-        public List<Item> items;
-        public List<Quest> quests;
+        List<RaceInf> raceInf;
+        List<CharacterClassInf> charaInf;
+        List<Map> maps;
+        List<TileType> tileTypes;
+        List<Item> items;
+        List<Quest> quests;
+
+        Tileset tileset;
 
         public void Load(string path)
         {
+
             string fullPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, path);
+
             Directory.CreateDirectory(fullPath);
             raceInf = TryLoad<RaceInf>(fullPath, "Races");
             charaInf = TryLoad<CharacterClassInf>(fullPath, "CharacterClasses");
             maps = TryLoad<Map>(fullPath, "Maps");
-            tilesets = TryLoad<Tileset>(fullPath, "Tilesets");
+            tileTypes = TryLoad<TileType>(fullPath, "Tiles");
             items = TryLoad<Item>(fullPath, "Items");
             quests = TryLoad<Quest>(fullPath, "Quests");
         }
@@ -60,5 +64,37 @@ namespace MMogri
         {
             FileUtils.SaveToXml<T>(t, path);
         }
+
+        public Map GetMap(Guid id)
+        {
+            return GetMap((Map m) => m.Id == id);
+        }
+
+        public Map GetMap(string name)
+        {
+            return GetMap((Map m) => m.name == name);
+        }
+
+        public Map GetMap(Func<Map, bool> check)
+        {
+            foreach (Map m in maps)
+            {
+                if (check(m))
+                    return m;
+            }
+            return null;
+        }
+
+        public Tileset GetTileset
+        {
+            get
+            {
+                if (tileset == null)
+                    tileset = new Tileset(tileTypes.OrderBy(x => x.id).ToArray());
+                return tileset;
+            }
+        }
+
+
     }
 }

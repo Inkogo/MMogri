@@ -10,17 +10,19 @@ namespace MMogri.Gameplay
     class Player : Entity
     {
         public Guid Id;
+        public Guid accountId;
+
+        public Guid mapId;
 
         public int gender;
         public int characterClass;
 
         public int lvl;
         public int exp;
+
         public CharacterStats stats;
-
         public Inventory inventory;
+        public Equipment equipment;
 
-        public DateTime lastLogin;
-        public DateTime createdAt;
     }
 }

@@ -8,7 +8,7 @@ using MMogri.Input;
 
 namespace MMogri
 {
-abstract    class ContentFrame
+    abstract class ContentFrame
     {
         const char borderHorizontal = '═';
         const char borderVertical = '║';
@@ -40,7 +40,7 @@ abstract    class ContentFrame
 
         public void ClearFrame()
         {
-            window.Clear(posX+1, posY+1, width-2, height-2);
+            window.Clear(posX + 1, posY + 1, width - 2, height - 2);
         }
 
         public void DrawFrame(int posX, int posY, int width, int height)

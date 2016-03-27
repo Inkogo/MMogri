@@ -6,7 +6,11 @@ using System.Threading.Tasks;
 
 namespace MMogri
 {
-    class DBLoader
+    class DBLoader<T>
     {
+        public List<T> GetItems(string search)
+        {
+            return new List<T>();
+        }
     }
 }

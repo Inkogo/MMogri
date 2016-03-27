@@ -33,6 +33,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="KeraLua, Version=1.3.2.0, Culture=neutral, PublicKeyToken=04d04586786c6f34, processorArchitecture=MSIL">
+      <HintPath>..\packages\NLua.1.3.2.1\lib\net45\KeraLua.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="NLua, Version=1.3.2.0, Culture=neutral, PublicKeyToken=8df2ab518030ea95, processorArchitecture=MSIL">
+      <HintPath>..\packages\NLua.1.3.2.1\lib\net45\NLua.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.Linq" />
@@ -44,6 +52,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Account.cs" />
     <Compile Include="Bitmask.cs" />
     <Compile Include="CharacterClassInf.cs" />
     <Compile Include="CharacterStats.cs" />
@@ -56,15 +65,22 @@
     <Compile Include="DBLoader.cs" />
     <Compile Include="Debug.cs" />
     <Compile Include="Entity.cs" />
+    <Compile Include="Equipment.cs" />
     <Compile Include="FileUtils.cs" />
+    <Compile Include="GameCore.cs" />
     <Compile Include="GameLoader.cs" />
     <Compile Include="GameMain.cs" />
     <Compile Include="GameWindow.cs" />
     <Compile Include="ICmd.cs" />
     <Compile Include="InputHandler.cs" />
+    <Compile Include="InputTest.cs" />
     <Compile Include="Inventory.cs" />
     <Compile Include="Item.cs" />
+    <Compile Include="Keybind.cs" />
     <Compile Include="KeyCode.cs" />
+    <Compile Include="LoginHandler.cs" />
+    <Compile Include="LuaAttributes.cs" />
+    <Compile Include="LuaHandler.cs" />
     <Compile Include="Map.cs" />
     <Compile Include="MapScreen.cs" />
     <Compile Include="MusicHandler.cs" />
@@ -90,8 +106,13 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+xcopy /s /y "D:\inko\myPrograms\MMogri\packages\NLua.1.3.2.1\lib\native\*.*" "$(TargetDir)"</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

@@ -4,12 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MMogri.Gameplay
+namespace MMogri.Scripting
 {
-    public class Item
+    class LuaFunc : Attribute
     {
-        public string name;
-        public byte maxStack;
-        public int weight;
     }
 }

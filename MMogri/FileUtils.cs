@@ -11,32 +11,38 @@ namespace MMogri.Utils
 {
     class FileUtils
     {
+        static readonly Encoding encoding = Encoding.Unicode;
+
         public static void SaveToXml<T>(T t, string path)
         {
             XmlWriterSettings xmlSettings = new XmlWriterSettings()
             {
                 Indent = true,
-                OmitXmlDeclaration = true,
-                Encoding = Encoding.Unicode,
+                Encoding = encoding,
             };
 
-            using (StreamWriter sw = new StreamWriter(path))
+            using (FileStream fs = new FileStream(path, FileMode.Create))
             {
-                using (XmlWriter xmlWriter = XmlWriter.Create(sw, xmlSettings))
+                using (StreamWriter sw = new StreamWriter(fs, encoding))
                 {
-                    XmlSerializer s = new XmlSerializer(typeof(T));
-                    s.Serialize(xmlWriter, t);
+                    using (XmlWriter xmlWriter = XmlWriter.Create(sw, xmlSettings))
+                    {
+                        XmlSerializer s = new XmlSerializer(typeof(T));
+                        s.Serialize(xmlWriter, t);
+                    }
                 }
             }
         }
 
         public static T LoadFromXml<T>(string path)
         {
-            using (StreamReader sr = new StreamReader(path, Encoding.Unicode))
+            using (FileStream fs = new FileStream(path, FileMode.Open))
             {
-                XmlSerializer s = new XmlSerializer(typeof(T));
-                T t = (T)s.Deserialize(sr);
-                return t;
+                using (StreamReader stream = new StreamReader(fs, encoding))
+                {
+                    XmlSerializer s = new XmlSerializer(typeof(T));
+                    return (T)s.Deserialize(new XmlTextReader(stream));
+                }
             }
         }
     }

@@ -10,20 +10,18 @@ namespace MMogri.Gameplay
     [System.Serializable]
     public class Map
     {
+        public Guid Id;
         public string name;
-        int sizeX;
-        int sizeY;
-        Tile[] tiles;
-        Guid tilesetId;
+        public int sizeX;
+        public int sizeY;
+        public Tile[] tiles;
 
-        public Map()
-        {
-            sizeX = 32;
-            sizeY = 32;
-        }
+        public Map() : this("Default", 32, 32)
+        { }
 
         public Map(string n, int x, int y)
         {
+            Id = Guid.NewGuid();
             name = n;
             sizeX = x;
             sizeY = y;
@@ -34,12 +32,12 @@ namespace MMogri.Gameplay
         {
             get
             {
-                if (!CheckTile(x, y)) return default(Tile);
+                if (!CheckTileBounds(x, y)) return default(Tile);
                 return tiles[(y * sizeX) + x];
             }
             set
             {
-                if (!CheckTile(x, y)) return;
+                if (!CheckTileBounds(x, y)) return;
                 tiles[(y * sizeX) + x] = value;
             }
         }
@@ -49,19 +47,7 @@ namespace MMogri.Gameplay
             tiles[(y * sizeX) + x].tileType = id;
         }
 
-        public bool CheckCollision(int x, int y)
-        {
-            return this[x, y].tileType > 0;
-            //return GetTileType(this[x, y].tileType).solid;
-        }
-
-        public TileType GetTileType(int id)
-        {
-            return new TileType();
-            //return tileset.tileTypes[id];
-        }
-
-        public bool CheckTile(int x, int y)
+        public bool CheckTileBounds(int x, int y)
         {
             return x >= 0 && x < sizeX && y >= 0 && y < sizeY;
         }
@@ -71,7 +57,6 @@ namespace MMogri.Gameplay
             w.Write(name);
             w.Write(sizeX);
             w.Write(sizeY);
-            //tileset.WriteBytes(w);
 
             foreach (Tile t in tiles)
                 w.Write(t.tileType);
@@ -83,7 +68,6 @@ namespace MMogri.Gameplay
                 r.ReadString(),
                 r.ReadInt32(),
                 r.ReadInt32()
-                //Tileset.FromBytes(r)
                 );
             for (int i = 0; i < m.sizeX * m.sizeY; i++)
             {
