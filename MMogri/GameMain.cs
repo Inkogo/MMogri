@@ -27,8 +27,15 @@ namespace MMogri.Core
 
         public void Start()
         {
-            InputTest test = new InputTest();
-            test.Start(gameWindow);
+            CmdConsole cmd = new CmdConsole();
+            while(true)
+            {
+                string s = Console.ReadLine();
+                cmd.ExecCmd(s);
+            }
+
+            //ClientMain test = new ClientMain();
+            //test.Start(gameWindow, input);
 
             //StartScreen s = new StartScreen(gameWindow, input);
             //s.Start();

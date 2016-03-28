@@ -12,17 +12,27 @@ namespace MMogri.Security
         DBLoader<Account> accountLoader = new DBLoader<Account>();
         DBLoader<Player> playerLoader = new DBLoader<Player>();
 
-        Account GetAccount(string name, Guid password)
+        static LoginHandler _instance;
+        public static LoginHandler Instance
+        {
+            get
+            {
+                if (_instance == null)
+                    _instance = new LoginHandler();
+                return _instance;
+            }
+        }
+
+        public Account GetAccount(string name, Guid password)
         {
             Account a = accountLoader.GetItems("name =" + name).First();
-            if(a.)
             if (a.ComparePassword(password)) return a;
             return null;
         }
 
-        Player[] GetPlayersOfAccount (Account a)
+        public Player[] GetPlayersOfAccount(Account a)
         {
-            return playerLoader.GetItems("accountId =" + a.Id);
+            return playerLoader.GetItems("accountId =" + a.Id).ToArray();
         }
     }
 }

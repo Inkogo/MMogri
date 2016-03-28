@@ -21,11 +21,8 @@ namespace MMogri
 
         Tileset tileset;
 
-        public void Load(string path)
+        public void Load(string fullPath)
         {
-
-            string fullPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, path);
-
             Directory.CreateDirectory(fullPath);
             raceInf = TryLoad<RaceInf>(fullPath, "Races");
             charaInf = TryLoad<CharacterClassInf>(fullPath, "CharacterClasses");

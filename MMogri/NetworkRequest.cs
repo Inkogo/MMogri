@@ -1,62 +1,44 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.IO;
 
 namespace MMogri.Network
 {
     [System.Serializable]
-    public class NetworkRequest
+    public class NetworkRequest : NetworkMessage
     {
         public enum RequestType
         {
-            CallMethod, DirectCall
-        }
-
-        public enum RequestTarget
-        {
-            Server, Others
+            JoinAccount,
+            JoinPlayer,
+            Leave,
+            PlayerInput,
+            GetKeybinds
         }
 
         public RequestType requestType;
-        public RequestTarget requestTarget;
-        public byte[] data;
+        public string requestAction;
+        public string[] requestParams;
 
-        public static NetworkRequest FromBytes(byte[] b)
+        protected override void WriteData(BinaryWriter writer)
         {
-            using (MemoryStream stream = new MemoryStream(b))
+            writer.Write(requestAction);
+            if (requestParams != null)
             {
-                using (BinaryReader reader = new BinaryReader(stream))
-                {
-                    NetworkRequest req = new NetworkRequest();
-
-                    req.requestTarget = (RequestTarget)reader.ReadInt32();
-                    req.requestType = (RequestType)reader.ReadInt32();
-                    int count = reader.ReadInt32();
-                    req.data = reader.ReadBytes(count);
-
-                    return req;
-                }
+                writer.Write(requestParams.Length);
+                foreach (string p in requestParams)
+                    writer.Write(p);
             }
-        }
-
-        public byte[] ToBytes()
-        {
-            using (MemoryStream stream = new MemoryStream())
-            {
-                using (BinaryWriter writer = new BinaryWriter(stream))
-                {
-                    writer.Write((int)requestTarget);
-                    writer.Write((int)requestType);
-                    writer.Write(data.Length);
-                    writer.Write(data);
-
-                    return stream.ToArray();
-                }
+            else
+                writer.Write(0);
             }
-        }
 
-        public override string ToString()
+        protected override void ReadData(BinaryReader reader)
         {
-            return requestType + ", " + requestTarget + ", " + "Data size: " + data.Length;
+            requestAction = reader.ReadString();
+            requestParams = new string[reader.ReadInt32()];
+            for (int i = 0; i < requestParams.Length; i++)
+                requestParams[i] = reader.ReadString();
         }
     }
 }
