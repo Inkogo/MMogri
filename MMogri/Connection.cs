@@ -7,8 +7,11 @@ using System.IO;
 
 namespace MMogri.Network
 {
-    public class Connection
+    public class Connection<T> where T : NetworkMessage, new()
     {
+        public delegate void OnReceiveMessageDelegate(T m);
+        public OnReceiveMessageDelegate OnReceiveMessage;
+
         public Socket sock;
         SendObject sObj;
 
@@ -55,10 +58,12 @@ namespace MMogri.Network
 
             if (partition >= expectedSize)
             {
-                Debugging.Debug.Log(expectedSize + " bytes got!");
-                NetworkRequest r = new NetworkRequest();
-                r.FromBytes(outBuffer);
-                //Do domething with request! get to it serverMain OR clientMain
+                //Debugging.Debug.Log(expectedSize + " bytes got!");
+                T t = new T();
+                t.FromBytes(outBuffer);
+
+                if (OnReceiveMessage != null)
+                    OnReceiveMessage(t);
 
                 expectedSize = -1;
                 partition = 0;

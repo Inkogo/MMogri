@@ -13,7 +13,7 @@ namespace MMogri.Utils
         { typeof(string), new ConverterString() },
         { typeof(int), new ConverterInt() },
         { typeof(float), new ConverterFloat() },
-            { typeof(Map), new ConverterMap() },
+        { typeof(Map), new ConverterMap() },
     };
 
         public static object ConvertToValue(Type t, byte[] b)

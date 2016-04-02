@@ -13,6 +13,8 @@ namespace MMogri.Core
         GameWindow gameWindow;
         InputHandler input;
 
+        List<Action> ticks;
+
         static void Main(string[] args)
         {
             GameMain game = new GameMain();
@@ -23,19 +25,18 @@ namespace MMogri.Core
         {
             gameWindow = new GameWindow(UserPreferences.Instance.windowSizeX, UserPreferences.Instance.windowSizeY);
             input = new InputHandler();
+            ticks = new List<Action>();
         }
 
         public void Start()
         {
-            CmdConsole cmd = new CmdConsole();
-            while(true)
-            {
-                string s = Console.ReadLine();
-                cmd.ExecCmd(s);
-            }
+            ServerMain server = new ServerMain("TestServer", gameWindow);
+            MMogri.Network.NetworkHandler.Instance.StartServer(25565, server);
+            ticks.Add(server.ServerTick);
 
-            //ClientMain test = new ClientMain();
-            //test.Start(gameWindow, input);
+            ClientMain client = new ClientMain(gameWindow, input);
+            MMogri.Network.NetworkHandler.Instance.ConnectToServer(System.Net.IPAddress.Parse("192.168.178.23"), 25565, client);
+            ticks.Add(client.ClientTick);
 
             //StartScreen s = new StartScreen(gameWindow, input);
             //s.Start();
@@ -43,46 +44,7 @@ namespace MMogri.Core
             //GameLoader loader = new GameLoader();
             //loader.Load("TestServer");
 
-            ////Debugging.Debug.Log((int)'c');
-
-            //foreach (TileType t in loader.tileTypes.OrderBy(x => x.id))
-            //    Debugging.Debug.Log(t.tag + ", " + t.name + ", " + t.id);
-            //TilesetEditor t = new TilesetEditor();
-            //t.Start();
-
-            //Console.Write("⌂♫");
-
             while (true) { }
-
-            //MMogri.Gameplay.Player p = new MMogri.Gameplay.Player();
-            //MMogri.Gameplay.Tileset t = new Gameplay.Tileset(new TileType("dirt", ' ', Color.White, false), new TileType("rock", 'F', Color.White, true));
-            //MMogri.Gameplay.Map m = new MMogri.Gameplay.Map("Undead Woods", 40, 40);
-            //m.SetTile(0, 4, 1);
-            //m.SetTile(1, 5, 1);
-            //m.SetTile(5, 8, 1);
-
-            //MapScreen s = new MapScreen(gameWindow, input, p, m);
-            //s.Start();
-
-            //CmdConsole cmd = new CmdConsole();
-            //while(true)
-            //{
-            //    string s = Console.ReadLine();
-            //    cmd.ExecCmd(s);
-            //}
-
-            //            Console.WriteLine(@"
-            //  ▲████▓██████████████
-            //  ▲█▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓█▲
-            //   ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓█ ▲▲
-            //▲▲ █▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓█▲▲▲
-            //▲  █▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓█▲ ░
-            //   █████████████  ████░░░
-            //      ▲▲▲▲░░       C░░░
-            //    ░░░    P    ░░░░░  ░░░
-            //");
-
-            //while (true) { }
         }
     }
 }

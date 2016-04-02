@@ -7,7 +7,7 @@ using MMogri.Renderer;
 
 namespace MMogri
 {
-    class Entity
+    public class Entity
     {
         public int x;
         public int y;
@@ -28,5 +28,7 @@ namespace MMogri
                 return Color.White;
             }
         }
+
+        virtual public void OnTick() { }
     }
 }

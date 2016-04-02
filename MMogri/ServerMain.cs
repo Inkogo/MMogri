@@ -17,39 +17,87 @@ namespace MMogri
     class ServerMain
     {
         string serverPath;
+        GameLoader loader;
+        GameCore core;
         LuaHandler lua;
+        LoginHandler login;
 
-        public ServerMain (string serverPath)
+        Dictionary<Guid, Player> activePlayers;
+
+        public ServerMain(string serverPath, GameWindow window)
         {
             this.serverPath = serverPath;
-        }
 
-        public void Start(GameWindow window)
-        {
-            GameLoader loader = new GameLoader();
-            GameCore core = new GameCore(loader);
+            loader = new GameLoader();
+            core = new GameCore(loader);
+            activePlayers = new Dictionary<Guid, Player>();
 
             loader.Load(ServerPath);
+
             lua = new LuaHandler();
+            login = new LoginHandler(ServerPath);
+
             lua.RegisterObserved("Core", core);
         }
 
-        void ProcessNetworkRequest(NetworkMessage m, Connection c)
+        public void ServerTick()
         {
-            NetworkRequest r = (NetworkRequest)m;
+            foreach (Guid g in activePlayers.Values.Select(x => x.mapId).Distinct().ToList())
+            {
+                Map m = loader.GetMap(g);
+                foreach (Tile t in m.tiles)
+                {
+                    t.OnTick();
+                }
+                foreach (Entity e in m.entities)
+                {
+                    e.OnTick();
+                }
+            }
+        }
+
+        public void ProcessNetworkRequest(NetworkRequest r, Guid g)
+        {
+            NetworkResponse resp = new NetworkResponse();
 
             switch (r.requestType)
             {
                 case NetworkRequest.RequestType.JoinAccount:
-                    Account a = LoginHandler.Instance.GetAccount(r.requestParams[0], new Guid(r.requestParams[1]));
-                    //NetworkHandler.Instance.SendNetworkResponse(null);
+                    //0=name, 1=passwordGuid
+                    Account a = login.GetAccount(r.requestParams[0], new Guid(r.requestParams[1]));
+                    //resp.type = NetworkResponse.ResponseType.AccountLogin;
+                    resp.error = a == null ? NetworkResponse.ErrorCode.FailedLogin : NetworkResponse.ErrorCode.None;
+                    //resp.AppendObject<Guid>(NetworkResponse.ResponsePackage.ResponseType.)
+                    //resp.obj = a.Id.ToString();
+                    NetworkHandler.Instance.SendNetworkResponse(g, resp);
+
+                    break;
+                case NetworkRequest.RequestType.CreateAccount:
+                    login.CreateAccount(r.requestParams[0], new Guid(r.requestParams[1]));
+
+                    break;
+                case NetworkRequest.RequestType.CreatePlayer:
+                    login.CreatePlayer(r.requestParams[0], new Guid(r.requestParams[1]), loader.GetMap("Test Map").Id, 3, 3);
+                    break;
+                case NetworkRequest.RequestType.JoinPlayer:
+                    RegisterPlayer(login.GetPlayersOfAccount(new Guid(r.requestParams[0])).First(), g);
                     break;
                 case NetworkRequest.RequestType.PlayerInput:
-                    Player p = null;        //somehow get player from connection
-                    lua.CallFunc(Path.Combine(ServerPath, "testLua.lua"), r.requestAction, p);
+                    lua.CallFunc(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, serverPath, "testLua.lua"), r.requestParams[0], activePlayers[g]);
                     break;
             }
         }
+
+        void RegisterPlayer(Player p, Guid g)
+        {
+            if (activePlayers.ContainsKey(g)) return;
+            activePlayers.Add(g, p);
+        }
+
+        //Keybind[] AutoGenKeybinds()
+        //{
+        //    lua.GetAllFuncs();
+        //}
 
         string ServerPath
         {

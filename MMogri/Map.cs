@@ -14,7 +14,10 @@ namespace MMogri.Gameplay
         public string name;
         public int sizeX;
         public int sizeY;
+
         public Tile[] tiles;
+
+        public List<Entity> entities;
 
         public Map() : this("Default", 32, 32)
         { }

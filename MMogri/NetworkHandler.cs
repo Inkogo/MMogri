@@ -7,10 +7,10 @@ using MMogri.Utils;
 
 namespace MMogri.Network
 {
-    public class NetworkHandler
+    class NetworkHandler
     {
         Server server;
-        Connection connection;
+        Connection<NetworkResponse> connection;
 
         static NetworkHandler _instance;
         public static NetworkHandler Instance
@@ -23,21 +23,21 @@ namespace MMogri.Network
             }
         }
 
-        public void StartServer(int port)
+        public void StartServer(int port, ServerMain serverMain)
         {
             server = new Server();
-            server.StartServer(port);
+            server.StartServer(port, (Guid g, NetworkMessage m) => serverMain.ProcessNetworkRequest((NetworkRequest)m, g));
         }
 
-        public void ConnectToServer(IPAddress ip, int port)
+        public void ConnectToServer(IPAddress ip, int port, ClientMain clientMain)
         {
             Socket s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
             try
             {
                 s.Connect(ip, port);
-                connection = new Connection(s);
-
+                connection = new Connection<NetworkResponse>(s);
+                connection.OnReceiveMessage = (NetworkResponse m) => clientMain.ProcessNetworkResponse(m);
             }
             catch (System.Net.Sockets.SocketException e)
             {
@@ -45,36 +45,43 @@ namespace MMogri.Network
             }
         }
 
-        //public void SendToServer(byte[] b)
-        //{
-        //    connection.sock.Send(b);
-        //}
-
-        //public void SendToClient(Guid g, byte[] b)
-        //{
-        //    server.connections[g].sock.Send(b);
-        //}
-
-        //public void ProcessNetworkRequest(NetworkRequest r)
-        //{
-        //    Debug.Log(r.ToString());
-        //}
-
-        [ICmd]
-        public static void CreateServer(int port)
+        public void SendNetworkRequest(NetworkRequest r)
         {
-            Instance.StartServer(port);
+            connection.sock.Send(PackNetworkMessage(r));
         }
 
-        [ICmd]
-        public static void JoinServer(string ip, int port)
+        public void SendNetworkResponse(Guid connection, NetworkResponse r)
         {
-            IPAddress i;
-            if (IPAddress.TryParse(ip, out i))
-                Instance.ConnectToServer(i, port);
-            else
-                Debug.Log("Ip is not valid!");
+            server.connections[connection].sock.Send(PackNetworkMessage(r));
         }
+
+        public byte[] PackNetworkMessage(NetworkMessage r)
+        {
+            byte[] b = r.ToBytes();
+            byte[] i = BitConverter.GetBytes(b.Length);
+
+            byte[] encoded = new byte[b.Length + i.Length];
+            Buffer.BlockCopy(i, 0, encoded, 0, i.Length);
+            Buffer.BlockCopy(b, 0, encoded, i.Length, b.Length);
+
+            return encoded;
+        }
+
+        //[ICmd]
+        //public static void CreateServer(int port)
+        //{
+        //    Instance.StartServer(port);
+        //}
+
+        //[ICmd]
+        //public static void JoinServer(string ip, int port)
+        //{
+        //    IPAddress i;
+        //    if (IPAddress.TryParse(ip, out i))
+        //        Instance.ConnectToServer(i, port);
+        //    else
+        //        Debug.Log("Ip is not valid!");
+        //}
 
         [ICmd]
         public void LeaveServer()
@@ -100,83 +107,25 @@ namespace MMogri.Network
             return a4;
         }
 
-        //        [ICmd]
-        //        public static void SendDirectMessageToServer(string s)
-        //        {
-        //            Instance.SendToServer(new NetworkRequest()
-        //            {
-        //                requestTarget = NetworkRequest.RequestTarget.Server,
-        //                requestType = NetworkRequest.RequestType.DirectCall,
-        //                data = ValueConverter.ConvertToBytes(typeof(string), s)
-        //            }.ToBytes());
-        //        }
+        //[ICmd]
+        //public static void TestRun()
+        //{
+        //    CreateServer(25565);
+        //    //string p = GetPublicIp();
+        //    JoinServer("192.168.0.10", 25565);
+        //}
 
-        //        [ICmd]
-        //        public static void SendDirectMessageToClients(string s)
-        //        {
-        //            foreach (Guid g in Instance.server.connections.Keys)
-        //            {
-        //                Instance.SendToClient(g, new NetworkRequest()
-        //                {
-        //                    requestTarget = NetworkRequest.RequestTarget.Others,
-        //                    requestType = NetworkRequest.RequestType.DirectCall,
-        //                    data = ValueConverter.ConvertToBytes(typeof(string), s)
-        //                }.ToBytes());
-        //            }
-        //        }
-
-        //        [ICmd]
-        //        public static void DebugConnections()
-        //        {
-        //            Debug.Log(Instance.server.connections.Count);
-        //        }
-
-        ////Remove this later!
-        //        [ICmd]
-        //        public static void TestSendMapData()
-        //        {
-        //            MMogri.Gameplay.Map m = new Gameplay.Map("Test", 40, 40);
-
-        //            Instance.SendToServer(new NetworkRequest()
-        //            {
-        //                requestTarget = NetworkRequest.RequestTarget.Server,
-        //                requestType = NetworkRequest.RequestType.DirectCall,
-        //                data = ValueConverter.ConvertToBytes(typeof(Gameplay.Map), m)
-        //            }.ToBytes());
-        //        }
-
-        [ICmd]
-        public static void TestRun()
-        {
-            CreateServer(25565);
-            //string p = GetPublicIp();
-            JoinServer("192.168.0.10", 25565);
-        }
-
-        [ICmd]
-        public static void TestRequest()
-        {
-            NetworkRequest r = new NetworkRequest()
-            {
-                requestAction = "test abc",
-                requestParams = new string[] { "test01", "test02" },
-                requestType = NetworkRequest.RequestType.PlayerInput
-            };
-            Instance.SendNetworkRequest(r);
-        }
-
-        public void SendNetworkRequest(NetworkRequest r)
-        {
-            byte[] b = r.ToBytes();
-            byte[] i = BitConverter.GetBytes(b.Length);
-
-            byte[] encoded = new byte[b.Length + i.Length];
-            Buffer.BlockCopy(i, 0, encoded, 0, i.Length);
-            Buffer.BlockCopy(b, 0, encoded, i.Length, b.Length);
-
-            connection.sock.Send(encoded);
-            Debug.Log(b.Length + " bytes sent!");            
-        }
+        //[ICmd]
+        //public static void TestRequest()
+        //{
+        //    NetworkRequest r = new NetworkRequest()
+        //    {
+        //        requestAction = "test abc",
+        //        requestParams = new string[] { "test01", "test02" },
+        //        requestType = NetworkRequest.RequestType.PlayerInput
+        //    };
+        //    Instance.SendNetworkRequest(r);
+        //}
 
         public bool IsClient
         {

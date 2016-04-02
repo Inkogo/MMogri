@@ -10,24 +10,23 @@ namespace MMogri.Network
     public class Server
     {
         Socket sock;
-        int port;
-        IPAddress addr;
+        Action<Guid, NetworkRequest> callback;
+        public Dictionary<Guid, Connection<NetworkRequest>> connections;
 
-        public Dictionary<Guid, Connection> connections;
-
-        public void StartServer(int p)
+        public void StartServer(int p, Action<Guid, NetworkMessage> c)
         {
-            port = p;
-            addr = IPAddress.Any;
-            connections = new Dictionary<Guid, Connection>();
+            int port = p;
+            IPAddress addr = IPAddress.Any;
+            connections = new Dictionary<Guid, Connection<NetworkRequest>>();
 
             this.sock = new Socket(
                 addr.AddressFamily,
                 SocketType.Stream,
                 ProtocolType.Tcp);
-            sock.Bind(new IPEndPoint(this.addr, this.port));
+            sock.Bind(new IPEndPoint(addr, port));
             this.sock.Listen(100);
             this.sock.BeginAccept(this.OnConnectRequest, sock);
+            this.callback = c;
             Debug.Log("Started Server at port: " + port);
         }
 
@@ -37,8 +36,10 @@ namespace MMogri.Network
 
             Debug.Log("Client connected to server! Ip: " + sock.LocalEndPoint);
 
-            Connection newConn = new Connection(sock.EndAccept(result));
-            connections.Add(Guid.NewGuid(), newConn);
+            Connection<NetworkRequest> newConn = new Connection<NetworkRequest>(sock.EndAccept(result));
+            Guid guid = Guid.NewGuid();
+            connections.Add(guid, newConn);
+            newConn.OnReceiveMessage = (NetworkRequest m) => callback(guid, m);
             sock.BeginAccept(this.OnConnectRequest, sock);
         }
     }

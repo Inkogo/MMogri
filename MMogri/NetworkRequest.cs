@@ -10,10 +10,12 @@ namespace MMogri.Network
         public enum RequestType
         {
             JoinAccount,
+            CreateAccount,
             JoinPlayer,
+            CreatePlayer,
             Leave,
+            GetKeybinds,
             PlayerInput,
-            GetKeybinds
         }
 
         public RequestType requestType;
@@ -22,6 +24,7 @@ namespace MMogri.Network
 
         protected override void WriteData(BinaryWriter writer)
         {
+            writer.Write((int)requestType);
             writer.Write(requestAction);
             if (requestParams != null)
             {
@@ -35,6 +38,7 @@ namespace MMogri.Network
 
         protected override void ReadData(BinaryReader reader)
         {
+            requestType = (RequestType)reader.ReadInt32();
             requestAction = reader.ReadString();
             requestParams = new string[reader.ReadInt32()];
             for (int i = 0; i < requestParams.Length; i++)

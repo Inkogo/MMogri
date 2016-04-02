@@ -26,5 +26,7 @@ namespace MMogri
         {
             tileType = i;
         }
+
+        public void OnTick () { }
     }
 }
