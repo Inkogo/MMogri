@@ -10,6 +10,8 @@ namespace MMogri.Network
         public enum RequestType
         {
             JoinAccount,
+            ChangePassword,
+            ResetPassword,
             CreateAccount,
             JoinPlayer,
             CreatePlayer,

@@ -9,24 +9,26 @@ namespace MMogri
     [System.Serializable]
     public struct Tile
     {
-       public int tileType;
-        //int itemType;
+        public int tileType;
+        public int itemType;
 
-        //public char tag;
-        //public Renderer.Color tagColor;
+        public int lightLvl;
+        public bool covered;
 
-        //public byte lightLvl;
-
-        public Tile(int t)
+        public Tile(int t, int i, int l, bool c)
         {
             tileType = t;
+            itemType = i;
+            lightLvl = l;
+            covered = c;
+
         }
 
-        public void SetTileType (int i)
+        public void SetTileType(int i)
         {
             tileType = i;
         }
 
-        public void OnTick () { }
+        public void OnTick() { }
     }
 }

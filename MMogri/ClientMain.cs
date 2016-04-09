@@ -23,10 +23,18 @@ namespace MMogri
         GameWindow window;
         InputHandler input;
 
+        LoginScreen loginScreen;
+        MapScreen mapScreen;
+
         public ClientMain(GameWindow window, InputHandler input)
         {
+            serverName = "MyClient";          //hack!
+
             this.window = window;
             this.input = input;
+
+            loginScreen = new LoginScreen(window, input, this);
+            mapScreen = new MapScreen(window, input);
         }
 
         public void ClientTick()
@@ -49,38 +57,164 @@ namespace MMogri
 
         public void ProcessNetworkResponse(NetworkResponse r)
         {
-            foreach (NetworkResponse.ResponsePackage p in r.packages)
+            switch (r.type)
             {
-                switch (p.type)
-                {
-                    case NetworkResponse.ResponsePackage.ResponseType.AccountCreate:
-                        break;
-                    case NetworkResponse.ResponsePackage.ResponseType.KeybindsInfo:
-                        break;
-                }
+                case NetworkResponse.ResponseType.AccountLogin:
+                    if (r.error == NetworkResponse.ErrorCode.None)
+                    {
+                        string[] allPlayers = null;
+                        Guid sessionId = new Guid();
+                        Guid accountId = new Guid();
+
+                        r.ReadObject((BinaryReader p) =>
+                        {
+                            allPlayers = new string[p.ReadInt32()]; for (int i = 0; i < allPlayers.Length; i++) allPlayers[i] = p.ReadString(); sessionId = new Guid(p.ReadString()); accountId = new Guid(p.ReadString());
+                        });
+
+                        loginScreen.LoginPlayer(allPlayers, accountId, sessionId);      //change this! delegate?
+                    }
+                    else
+                    {
+                        Console.WriteLine("Wrong username or password!");
+                        loginScreen.LoginAccount();
+                    }
+                    break;
+
+                case NetworkResponse.ResponseType.KeybindsInfo:
+                    Keybind[] k = null;
+                    r.ReadObject((BinaryReader p) =>
+                    {
+                        k = new Keybind[p.ReadInt32()];
+                        for (int i = 0; i < k.Length; i++)
+                        {
+                            k[i] = new Keybind(p.ReadString(), (KeyCode)p.ReadInt32(), (KeyCode)p.ReadInt32());
+                        }
+                    });
+                    keybinds = k;
+                    SaveKeybinds();
+
+                    break;
             }
-            //Debugging.Debug.Log(r.type + ", " + r.error);
-            //switch (r.type)
-            //{
-            //    case NetworkResponse.ResponseType.AccountLogin:
-            //        if (r.error == NetworkResponse.ErrorCode.None)
-            //            accountId = new Guid(r.obj);
-            //        break;
-            //    case NetworkResponse.ResponseType.KeybindsInfo:
-            //        keybinds = ValueConverter.ConvertToValue(typeof(Keybind[]), r.obj);
-            //}
-            //STUUUUUUFF!
         }
 
-        void Test()
+        public void OnJoinServer()
         {
-            if (File.Exists(Path.Combine(ClientPath, "keybindings.xml")))
-                keybinds = FileUtils.LoadFromXml<Keybind[]>(Path.Combine(ClientPath, "keybindings.xml"));
+            //loginScreen.Start();
+
+            loginScreen.LoginAccount();
+        }
+
+        public void RequestLoginAccount(string name, Guid password)
+        {
+            NetworkHandler.Instance.SendNetworkRequest(new NetworkRequest()
+            {
+                requestType = NetworkRequest.RequestType.JoinAccount,
+                requestAction = "none",
+                requestParams = new string[]
+            {
+                  name,
+                  password.ToString(),
+            }
+            });
+        }
+
+        public void RequestCreateAccount(string name, Guid password)
+        {
+            NetworkHandler.Instance.SendNetworkRequest(new NetworkRequest()
+            {
+                requestType = NetworkRequest.RequestType.CreateAccount,
+                requestAction = "none",
+                requestParams = new string[]
+            {
+                name,
+                password.ToString(),
+            }
+            });
+        }
+
+        public void RequestSpawn(string p, Guid account, Guid sessionId)
+        {
+            NetworkHandler.Instance.SendNetworkRequest(new NetworkRequest()
+            {
+                requestType = NetworkRequest.RequestType.JoinPlayer,
+                requestAction = "none",
+                requestParams = new string[]
+            {
+                    p,
+                    account.ToString(),
+                    sessionId.ToString(),
+            }
+            });
+        }
+
+        public void RequestCreatePlayer(string p, Guid account, Guid sessionId)
+        {
+            NetworkHandler.Instance.SendNetworkRequest(new NetworkRequest()
+            {
+                requestType = NetworkRequest.RequestType.CreatePlayer,
+                requestAction = "none",
+                requestParams = new string[]
+            {
+                p,
+                account.ToString(),
+                sessionId.ToString(),
+            }
+            });
+        }
+
+        public void RequestChangePassword(Guid oldP, Guid newP, Guid account, Guid sessionId)
+        {
+            NetworkHandler.Instance.SendNetworkRequest(new NetworkRequest()
+            {
+                requestType = NetworkRequest.RequestType.ChangePassword,
+                requestAction = "none",
+                requestParams = new string[]
+            {
+                oldP.ToString(),
+                newP.ToString(),
+                account.ToString(),
+                sessionId.ToString(),
+            }
+            });
+        }
+
+        public void RequestResetPassword(string email)
+        {
+            NetworkHandler.Instance.SendNetworkRequest(new NetworkRequest()
+            {
+                requestType = NetworkRequest.RequestType.ResetPassword,
+                requestAction = "none",
+                requestParams = new string[]
+            {
+                email,
+            }
+            });
+        }
+
+        public void RequestDefaultKeybinds()
+        {
+            NetworkHandler.Instance.SendNetworkRequest(new NetworkRequest()
+            {
+                requestType = NetworkRequest.RequestType.GetKeybinds,
+                requestAction = "none",
+            });
+        }
+
+        void SaveKeybinds()
+        {
+            Directory.CreateDirectory(ClientPath);
+            FileUtils.SaveToXml<Keybind[]>(keybinds, KeybindsPath);
+        }
+
+        bool LoadKeybinds()
+        {
+            if (File.Exists(KeybindsPath))
+            {
+                keybinds = FileUtils.LoadFromXml<Keybind[]>(KeybindsPath);
+                return false;
+            }
             else
-                NetworkHandler.Instance.SendNetworkRequest(new NetworkRequest()
-                {
-                    requestType = NetworkRequest.RequestType.GetKeybinds,
-                });
+                return false;
         }
 
         string ClientPath
@@ -88,6 +222,14 @@ namespace MMogri
             get
             {
                 return (Path.Combine(AppDomain.CurrentDomain.BaseDirectory, serverName));
+            }
+        }
+
+        string KeybindsPath
+        {
+            get
+            {
+                return Path.Combine(ClientPath, "keybindings.xml");
             }
         }
     }

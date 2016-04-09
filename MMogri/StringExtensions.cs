@@ -15,5 +15,19 @@ namespace MMogri
             byte[] data = md5Hasher.ComputeHash(Encoding.Default.GetBytes(value));
             return new Guid(data);
         }
+
+        public static string Random(this string s)
+        {
+            string input = "abcdefghijklmnopqrstuvwxyz0123456789";
+            StringBuilder builder = new StringBuilder();
+            char ch;
+            Random random = new Random();
+            for (int i = 0; i < s.Length; i++)
+            {
+                ch = input[random.Next(0, input.Length)];
+                builder.Append(ch);
+            }
+            return builder.ToString();
+        }
     }
 }

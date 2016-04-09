@@ -38,6 +38,7 @@ namespace MMogri.Network
                 s.Connect(ip, port);
                 connection = new Connection<NetworkResponse>(s);
                 connection.OnReceiveMessage = (NetworkResponse m) => clientMain.ProcessNetworkResponse(m);
+                clientMain.OnJoinServer();
             }
             catch (System.Net.Sockets.SocketException e)
             {

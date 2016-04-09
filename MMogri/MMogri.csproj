@@ -85,6 +85,8 @@
     <Compile Include="ContentFrame.cs" />
     <Compile Include="Curve.cs" />
     <Compile Include="Debug.cs" />
+    <Compile Include="Direction.cs" />
+    <Compile Include="EMailHandler.cs" />
     <Compile Include="Entity.cs" />
     <Compile Include="Equipment.cs" />
     <Compile Include="FileUtils.cs" />
@@ -101,6 +103,7 @@
     <Compile Include="KeyCode.cs" />
     <Compile Include="LocalDb.cs" />
     <Compile Include="LoginHandler.cs" />
+    <Compile Include="LoginScreen.cs" />
     <Compile Include="LuaAttributes.cs" />
     <Compile Include="LuaHandler.cs" />
     <Compile Include="Map.cs" />
@@ -111,6 +114,7 @@
     <Compile Include="NetworkRequest.cs" />
     <Compile Include="NetworkResponse.cs" />
     <Compile Include="Player.cs" />
+    <Compile Include="Point.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Quest.cs" />
     <Compile Include="RaceInf.cs" />

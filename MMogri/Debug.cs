@@ -15,7 +15,7 @@ namespace MMogri.Debugging
                 s = "NULL";
             else
                 s = o.ToString();
-            Console.WriteLine(s);
+            //Console.WriteLine(s);
             System.Diagnostics.Debug.Print(s);
         }
     }

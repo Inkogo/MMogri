@@ -4,12 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MMogri.Network
+namespace MMogri.Core
 {
-    struct ServerInf
+    [System.Serializable]
+    public struct ServerInf
     {
         public string name;
         public int maxPlayers;
-        public bool privateOnly;
+
+        public string authentificationEmail;
+        public string authentificationEmailPassword;
     }
 }

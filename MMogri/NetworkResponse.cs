@@ -10,68 +10,73 @@ namespace MMogri
 {
     public class NetworkResponse : NetworkMessage
     {
-        public class ResponsePackage
+        public enum ResponseType
         {
-            public enum ResponseType
-            {
-                AccountLogin,
-                AccountCreate,
-                KeybindsInfo,
-            }
-
-            public ResponseType type;
-            public byte[] data;
-
-            public ResponsePackage (ResponseType t, byte[] b)
-            {
-                type = t;
-                data = b;
-            }
-
-            public byte[] ToBytes ()
-            {
-                byte[] i = BitConverter.GetBytes((int)type);
-
-                byte[] encoded = new byte[data.Length + i.Length];
-                Buffer.BlockCopy(i, 0, encoded, 0, i.Length);
-                Buffer.BlockCopy(data, 0, encoded, i.Length, data.Length);
-
-                return encoded;
-            }
+            Undefined,
+            AccountLogin,
+            AccountCreate,
+            KeybindsInfo,
         }
 
         public enum ErrorCode
         {
             None,
-            FailedLogin,
+            SecurityFailed,
+            DataNotFound,
         }
 
+        public ResponseType type;
         public ErrorCode error;
-        public List<ResponsePackage> packages;
+        public byte[] data;
 
-        public void AppendObject<T>(ResponsePackage.ResponseType r, T t)
+        public NetworkResponse ()
         {
-            byte[] b = Utils.ValueConverter.ConvertToBytes(typeof(T), t);
-            packages.Add(new ResponsePackage(r, b));
+            type = ResponseType.Undefined;
+            error = ErrorCode.None;
+            data = new byte[0];
+        }
+
+        public void AppendObject(Action<BinaryWriter> w)
+        {
+            byte[] b;
+            using (MemoryStream stream = new MemoryStream())
+            {
+                using (BinaryWriter writer = new BinaryWriter(stream))
+                {
+                    w(writer);
+                    b = stream.ToArray();
+                }
+            }
+            
+            byte[] encoded = new byte[data.Length + b.Length];
+            Buffer.BlockCopy(data, 0, encoded, 0, data.Length);
+            Buffer.BlockCopy(b, 0, encoded, data.Length, b.Length);
+            data = encoded;
+        }
+
+        public void ReadObject(Action<BinaryReader> r)
+        {
+            using (MemoryStream stream = new MemoryStream(data))
+            {
+                using (BinaryReader reader = new BinaryReader(stream))
+                {
+                    r(reader);
+                }
+            }
         }
 
         protected override void ReadData(BinaryReader reader)
         {
+            type = (ResponseType)reader.ReadInt32();
             error = (ErrorCode)reader.ReadInt32();
-            packages = new List<ResponsePackage>();
-            for (int i = 0; i < reader.ReadInt32(); i++) {
-                //figure out way to read package from stream
-                //ResponsePackage r = new ResponsePackage();
-                //packages.Add(r.FromBytes(reader.Read));
-            }
+            data = reader.ReadBytes((int)reader.BaseStream.Length);
         }
 
         protected override void WriteData(BinaryWriter write)
         {
+            write.Write((int)type);
             write.Write((int)error);
-            write.Write((int)packages.Count);
-            foreach (ResponsePackage p in packages)
-                write.Write(p.ToBytes());
+            write.Write(data);
         }
     }
 }

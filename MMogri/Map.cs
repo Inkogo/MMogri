@@ -15,8 +15,9 @@ namespace MMogri.Gameplay
         public int sizeX;
         public int sizeY;
 
-        public Tile[] tiles;
+        public int baseLightLvl;
 
+        public Tile[] tiles;
         public List<Entity> entities;
 
         public Map() : this("Default", 32, 32)
@@ -45,15 +46,60 @@ namespace MMogri.Gameplay
             }
         }
 
-        public void SetTile(int x, int y, int id)
+        public void SetTileType(int x, int y, int id)
         {
-            tiles[(y * sizeX) + x].tileType = id;
+            SetTile(x, y, (Tile t) => t.tileType = id);
+        }
+
+        public void SetTileItel(int x, int y, int id)
+        {
+            SetTile(x, y, (Tile t) => t.itemType = id);
+        }
+
+        public void SetTileLight(int x, int y, int lvl)
+        {
+            SetTile(x, y, (Tile t) => t.lightLvl = lvl);
+        }
+
+        public void SetTile(int x, int y, Action<Tile> a)
+        {
+            a(tiles[(y * sizeX) + x]);
         }
 
         public bool CheckTileBounds(int x, int y)
         {
             return x >= 0 && x < sizeX && y >= 0 && y < sizeY;
         }
+
+        //void UpdateLightMap()
+        //{
+        //    List<Point> points = new List<Point>();
+        //    for (int x = 0; x < sizeX; x++)
+        //    {
+        //        for (int y = 0; y < sizeY; y++)
+        //        {
+        //            if (points.Contains(new Point(x, y))) continue;
+        //            UpdateLight(x, y, GetTileType(x, y).lightEmission, ref points);
+        //        }
+        //    }
+        //}
+
+        //void UpdateLight(int x, int y, int f, ref List<Point> points)
+        //{
+        //    if (!this[x, y].covered && f < baseLightLvl)
+        //        f = baseLightLvl;
+
+        //    Point p = new Point(x, y);
+        //    points.Add(p);
+        //    SetTileLight(x, y, f);
+        //    if (f > 0 && GetTileType(x, y).translucent == true)
+        //    {
+        //        //point + up, down, left, right
+        //        foreach (Direction d in Direction.Directions())
+        //            if (!points.Contains(p + d))
+        //                UpdateLight(p.x, p.y, (byte)(f - 1), ref points);
+        //    }
+        //}
 
         public void WriteBytes(BinaryWriter w)
         {
@@ -62,7 +108,12 @@ namespace MMogri.Gameplay
             w.Write(sizeY);
 
             foreach (Tile t in tiles)
+            {
                 w.Write(t.tileType);
+                w.Write(t.itemType);
+                w.Write(t.lightLvl);
+                w.Write(t.covered);
+            }
         }
 
         public static Map FromBytes(BinaryReader r)
@@ -74,7 +125,7 @@ namespace MMogri.Gameplay
                 );
             for (int i = 0; i < m.sizeX * m.sizeY; i++)
             {
-                m.tiles[i] = new Tile(r.ReadInt32());
+                m.tiles[i] = new Tile(r.ReadInt32(), r.ReadInt32(), r.ReadInt32(), r.ReadBoolean());
             }
             return m;
         }

@@ -16,7 +16,7 @@ namespace MMogri
 {
     class ServerMain
     {
-        string serverPath;
+        ServerInf serverInf;
         GameLoader loader;
         GameCore core;
         LuaHandler lua;
@@ -24,9 +24,9 @@ namespace MMogri
 
         Dictionary<Guid, Player> activePlayers;
 
-        public ServerMain(string serverPath, GameWindow window)
+        public ServerMain(ServerInf serverInf, GameWindow window)
         {
-            this.serverPath = serverPath;
+            this.serverInf = serverInf;
 
             loader = new GameLoader();
             core = new GameCore(loader);
@@ -58,32 +58,68 @@ namespace MMogri
 
         public void ProcessNetworkRequest(NetworkRequest r, Guid g)
         {
-            NetworkResponse resp = new NetworkResponse();
-
             switch (r.requestType)
             {
                 case NetworkRequest.RequestType.JoinAccount:
-                    //0=name, 1=passwordGuid
-                    Account a = login.GetAccount(r.requestParams[0], new Guid(r.requestParams[1]));
-                    //resp.type = NetworkResponse.ResponseType.AccountLogin;
-                    resp.error = a == null ? NetworkResponse.ErrorCode.FailedLogin : NetworkResponse.ErrorCode.None;
-                    //resp.AppendObject<Guid>(NetworkResponse.ResponsePackage.ResponseType.)
-                    //resp.obj = a.Id.ToString();
-                    NetworkHandler.Instance.SendNetworkResponse(g, resp);
-
+                    {
+                        //0=name, 1=password
+                        Account a = login.GetAccount(r.requestParams[0], new Guid(r.requestParams[1]));
+                        RespondAccountJoined(a, g);
+                    }
+                    break;
+                case NetworkRequest.RequestType.ChangePassword:
+                    {
+                        //0=oldPassword, 1=newPassword, 2=account, 3=sessionID
+                        Account a = login.FindAccount(new Guid(r.requestParams[2]));
+                        if (a.ComparePassword(new Guid(r.requestParams[0])) && login.ValidateSessionId(new Guid(r.requestParams[2]), new Guid(r.requestParams[3])))
+                        {
+                            login.ChangePassword(a.email, new Guid(r.requestParams[0]), new Guid(r.requestParams[1]));
+                            RespondPasswordChanged(true, g);
+                        }
+                        else
+                            RespondPasswordChanged(false, g);
+                    }
+                    break;
+                case NetworkRequest.RequestType.ResetPassword:
+                    {
+                        //0=email
+                        login.ResetPassword(r.requestParams[0], serverInf.authentificationEmail, serverInf.authentificationEmailPassword);
+                    }
                     break;
                 case NetworkRequest.RequestType.CreateAccount:
-                    login.CreateAccount(r.requestParams[0], new Guid(r.requestParams[1]));
-
+                    {
+                        //0=email, 1=password
+                        if (login.FindAccount(r.requestParams[0]) == null)
+                            login.CreateAccount(r.requestParams[0], new Guid(r.requestParams[1]));
+                    }
                     break;
                 case NetworkRequest.RequestType.CreatePlayer:
-                    login.CreatePlayer(r.requestParams[0], new Guid(r.requestParams[1]), loader.GetMap("Test Map").Id, 3, 3);
+                    //0=playerName, 1=account, 2=sessionID
+                    {
+                        if (login.ValidateSessionId(new Guid(r.requestParams[1]), new Guid(r.requestParams[2])))
+                        {
+                            Player pl = login.CreatePlayer(r.requestParams[0], new Guid(r.requestParams[1]), loader.GetMap("Test Map").Id, 3, 3);
+                            RegisterPlayer(pl, g);
+                        }
+                    }
                     break;
                 case NetworkRequest.RequestType.JoinPlayer:
-                    RegisterPlayer(login.GetPlayersOfAccount(new Guid(r.requestParams[0])).First(), g);
+                    {
+                        //0=playerName, 1=account, 2=sessionID
+                        Player pp = login.FindPlayer(new Guid(r.requestParams[1]), r.requestParams[0]);
+                        if (login.ValidateSessionId(new Guid(r.requestParams[1]), new Guid(r.requestParams[2])))
+                            RegisterPlayer(pp, g);
+                    }
+                    break;
+                case NetworkRequest.RequestType.GetKeybinds:
+                    {
+                        Keybind[] keybinds = Utils.FileUtils.LoadFromXml<Keybind[]>(Path.Combine(ServerPath, "keybindings.xml"));
+                        RespondKeybinds(keybinds, g);
+                    }
                     break;
                 case NetworkRequest.RequestType.PlayerInput:
-                    lua.CallFunc(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, serverPath, "testLua.lua"), r.requestParams[0], activePlayers[g]);
+                    //handle params here later!
+                    lua.CallFunc(Path.Combine(ServerPath, "testLua.lua"), r.requestParams[0], activePlayers[g]);
                     break;
             }
         }
@@ -92,18 +128,55 @@ namespace MMogri
         {
             if (activePlayers.ContainsKey(g)) return;
             activePlayers.Add(g, p);
+            Debugging.Debug.Log(p.name + " joined the server!");
         }
 
-        //Keybind[] AutoGenKeybinds()
-        //{
-        //    lua.GetAllFuncs();
-        //}
+        void RespondAccountJoined(Account a, Guid g)
+        {
+            NetworkResponse p = new NetworkResponse();
+            p.type = NetworkResponse.ResponseType.AccountLogin;
+            if (a == null)
+                p.error = NetworkResponse.ErrorCode.SecurityFailed;
+            else
+            {
+                Player[] players = login.GetPlayersOfAccount(a.Id);
+                p.AppendObject((BinaryWriter w) =>
+                {
+                    w.Write(players.Length); foreach (Player pl in players) w.Write(pl.name); w.Write(login.GenSessionId(a.Id).ToString()); w.Write(a.Id.ToString());
+                });
+            }
+            NetworkHandler.Instance.SendNetworkResponse(g, p);
+        }
+
+        void RespondPasswordChanged (bool b, Guid g)
+        {
+            NetworkResponse p = new NetworkResponse();
+            p.error = b ? NetworkResponse.ErrorCode.None : NetworkResponse.ErrorCode.SecurityFailed;
+            NetworkHandler.Instance.SendNetworkResponse(g, p);
+        }
+
+        void RespondKeybinds(Keybind[] keybinds, Guid g)
+        {
+            NetworkResponse p = new NetworkResponse();
+            p.type = NetworkResponse.ResponseType.KeybindsInfo;
+            if (keybinds == null)
+                p.error = NetworkResponse.ErrorCode.DataNotFound;
+            p.AppendObject((BinaryWriter w) =>
+            {
+                w.Write(keybinds.Length);
+                foreach (Keybind b in keybinds)
+                {
+                    w.Write(b.action); w.Write((int)b.key); w.Write((int)b.altKey);
+                }
+            });
+            NetworkHandler.Instance.SendNetworkResponse(g, p);
+        }
 
         string ServerPath
         {
             get
             {
-                return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, serverPath);
+                return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, serverInf.name);
             }
         }
     }

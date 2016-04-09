@@ -47,6 +47,11 @@ namespace MMogri.Renderer
             Console.WriteLine(s);
         }
 
+        public void SetColor (Color c)
+        {
+            Console.ForegroundColor = c.ToConsoleColor();
+        }
+
         public void SetNext(char c)
         {
             Console.Write(c);
@@ -69,6 +74,11 @@ namespace MMogri.Renderer
                     n++;
                 }
             }
+        }
+
+        public void SetEditMode (bool b)
+        {
+            Console.CursorVisible = b;
         }
 
         public void Clear ()

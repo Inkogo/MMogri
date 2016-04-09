@@ -15,9 +15,9 @@ namespace MMogri
         Map map;
         Tileset tileset;
 
-        public MapScreen(GameWindow w, InputHandler i, Player p) : base(w, i)
+        public MapScreen(GameWindow w, InputHandler i) : base(w, i)
         {
-            player = p;
+            //player = p;
         }
 
         public override void Start()
@@ -46,7 +46,8 @@ namespace MMogri
                     int x0 = player.x - (int)(width * .5f) + x;
                     int y0 = player.y - (int)(height * .5f) + y;
 
-                    if (x0 == player.x && y0 == player.y) {
+                    if (x0 == player.x && y0 == player.y)
+                    {
                         window.SetNext('P');
                     }
                     else
@@ -55,9 +56,11 @@ namespace MMogri
                         {
                             Tile t = map[x0, y0];
                             TileType tt = tileset.tileTypes[t.tileType];
-                            window.SetNext(tt.tag);
+                            window.SetColor(tt.GetColor(t.lightLvl));
+                            window.SetNext(tt.GetTag(t.lightLvl));
                         }
-                        else {
+                        else
+                        {
                             window.SetNext(' ');
                         }
                     }

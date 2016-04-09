@@ -30,21 +30,25 @@ namespace MMogri.Core
 
         public void Start()
         {
-            ServerMain server = new ServerMain("TestServer", gameWindow);
+            string serverPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestServer/serverInf.xml");
+
+            ServerInf inf = Utils.FileUtils.LoadFromXml<ServerInf>(serverPath);
+            ServerMain server = new ServerMain(inf, gameWindow);
             MMogri.Network.NetworkHandler.Instance.StartServer(25565, server);
             ticks.Add(server.ServerTick);
 
             ClientMain client = new ClientMain(gameWindow, input);
-            MMogri.Network.NetworkHandler.Instance.ConnectToServer(System.Net.IPAddress.Parse("192.168.178.23"), 25565, client);
+            MMogri.Network.NetworkHandler.Instance.ConnectToServer(System.Net.IPAddress.Parse("192.168.0.10"), 25565, client);
             ticks.Add(client.ClientTick);
 
             //StartScreen s = new StartScreen(gameWindow, input);
             //s.Start();
 
-            //GameLoader loader = new GameLoader();
-            //loader.Load("TestServer");
-
-            while (true) { }
+            while (true)
+            {
+                foreach (Action a in ticks)
+                    a();
+            }
         }
     }
 }
