@@ -22,21 +22,21 @@ namespace MMogri.Gameplay
             tileTypes = t;
         }
 
-        public void WriteBytes(BinaryWriter w)
-        {
-            w.Write(tileTypes.Length);
-            foreach (TileType t in tileTypes)
-                t.WriteBytes(w);
-        }
+        //public void WriteBytes(BinaryWriter w)
+        //{
+        //    w.Write(tileTypes.Length);
+        //    foreach (TileType t in tileTypes)
+        //        t.WriteBytes(w);
+        //}
 
-        public static Tileset FromBytes(BinaryReader r)
-        {
-            Tileset t = new Tileset();
-            int numb = r.ReadInt32();
-            t.tileTypes = new TileType[numb];
-            for (int i = 0; i < numb; i++)
-                t.tileTypes[i] = TileType.FromBytes(r);
-            return t;
-        }
+        //public static Tileset FromBytes(BinaryReader r)
+        //{
+        //    Tileset t = new Tileset();
+        //    int numb = r.ReadInt32();
+        //    t.tileTypes = new TileType[numb];
+        //    for (int i = 0; i < numb; i++)
+        //        t.tileTypes[i] = TileType.FromBytes(r);
+        //    return t;
+        //}
     }
 }

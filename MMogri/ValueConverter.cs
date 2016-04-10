@@ -13,7 +13,7 @@ namespace MMogri.Utils
         { typeof(string), new ConverterString() },
         { typeof(int), new ConverterInt() },
         { typeof(float), new ConverterFloat() },
-        { typeof(Map), new ConverterMap() },
+        //{ typeof(Map), new ConverterMap() },
     };
 
         public static object ConvertToValue(Type t, byte[] b)
@@ -93,16 +93,16 @@ namespace MMogri.Utils
             }
         }
 
-        public class ConverterMap : Converter
-        {
-            public override object ReadBytes(BinaryReader r)
-            {
-                return Map.FromBytes(r);
-            }
-            public override void WriteObject(BinaryWriter w, object o)
-            {
-                ((Map)o).WriteBytes(w);
-            }
-        }
+        //public class ConverterMap : Converter
+        //{
+        //    public override object ReadBytes(BinaryReader r)
+        //    {
+        //        return Map.FromBytes(r);
+        //    }
+        //    public override void WriteObject(BinaryWriter w, object o)
+        //    {
+        //        ((Map)o).WriteBytes(w);
+        //    }
+        //}
     }
 }

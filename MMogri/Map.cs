@@ -66,63 +66,62 @@ namespace MMogri.Gameplay
             return x >= 0 && x < sizeX && y >= 0 && y < sizeY;
         }
 
-        //void UpdateLightMap()
-        //{
-        //    List<Point> points = new List<Point>();
-        //    for (int x = 0; x < sizeX; x++)
-        //    {
-        //        for (int y = 0; y < sizeY; y++)
-        //        {
-        //            if (points.Contains(new Point(x, y))) continue;
-        //            UpdateLight(x, y, GetTileType(x, y).lightEmission, ref points);
-        //        }
-        //    }
-        //}
-
-        //void UpdateLight(int x, int y, int f, ref List<Point> points)
-        //{
-        //    if (!this[x, y].covered && f < baseLightLvl)
-        //        f = baseLightLvl;
-
-        //    Point p = new Point(x, y);
-        //    points.Add(p);
-        //    SetTileLight(x, y, f);
-        //    if (f > 0 && GetTileType(x, y).translucent == true)
-        //    {
-        //        //point + up, down, left, right
-        //        foreach (Direction d in Direction.Directions())
-        //            if (!points.Contains(p + d))
-        //                UpdateLight(p.x, p.y, (byte)(f - 1), ref points);
-        //    }
-        //}
-
-        public void WriteBytes(BinaryWriter w)
+        public void UpdateLightMap(Tileset t)
         {
-            w.Write(name);
-            w.Write(sizeX);
-            w.Write(sizeY);
-
-            foreach (Tile t in tiles)
+            List<Point> points = new List<Point>();
+            for (int x = 0; x < sizeX; x++)
             {
-                w.Write(t.tileType);
-                w.Write(t.itemType);
-                w.Write(t.lightLvl);
-                w.Write(t.covered);
+                for (int y = 0; y < sizeY; y++)
+                {
+                    if (points.Contains(new Point(x, y))) continue;
+                    UpdateLight(x, y, t.tileTypes[this[x, y].tileType].lightEmission, ref points, t);
+                }
             }
         }
 
-        public static Map FromBytes(BinaryReader r)
+        public void UpdateLight(int x, int y, int f, ref List<Point> points, Tileset t)
         {
-            Map m = new Map(
-                r.ReadString(),
-                r.ReadInt32(),
-                r.ReadInt32()
-                );
-            for (int i = 0; i < m.sizeX * m.sizeY; i++)
+            if (!this[x, y].covered && f < baseLightLvl)
+                f = baseLightLvl;
+
+            Point p = new Point(x, y);
+            points.Add(p);
+            SetTileLight(x, y, f);
+            if (f > 0 && t.tileTypes[this[x, y].tileType].translucent == true)
             {
-                m.tiles[i] = new Tile(r.ReadInt32(), r.ReadInt32(), r.ReadInt32(), r.ReadBoolean());
+                foreach (Direction d in Direction.Directions())
+                    if (!points.Contains(p + d))
+                        UpdateLight(p.x, p.y, (byte)(f - 1), ref points, t);
             }
-            return m;
         }
+
+        //public void WriteBytes(BinaryWriter w)
+        //{
+        //    w.Write(name);
+        //    w.Write(sizeX);
+        //    w.Write(sizeY);
+
+        //    foreach (Tile t in tiles)
+        //    {
+        //        w.Write(t.tileType);
+        //        w.Write(t.itemType);
+        //        w.Write(t.lightLvl);
+        //        w.Write(t.covered);
+        //    }
+        //}
+
+        //public static Map FromBytes(BinaryReader r)
+        //{
+        //    Map m = new Map(
+        //        r.ReadString(),
+        //        r.ReadInt32(),
+        //        r.ReadInt32()
+        //        );
+        //    for (int i = 0; i < m.sizeX * m.sizeY; i++)
+        //    {
+        //        m.tiles[i] = new Tile(r.ReadInt32(), r.ReadInt32(), r.ReadInt32(), r.ReadBoolean());
+        //    }
+        //    return m;
+        //}
     }
 }

@@ -11,27 +11,16 @@ namespace MMogri
 {
     class MapScreen : ContentFrame
     {
-        Player player;
-        Map map;
-        Tileset tileset;
+        ClientGameState gameState;
 
         public MapScreen(GameWindow w, InputHandler i) : base(w, i)
-        {
-            //player = p;
-        }
+        { }
 
         public override void Start()
         {
-        }
-
-        public void Start(Map m, Tileset t)
-        {
-            map = m;
-            tileset = t;
-
             DrawFrame(1, 2, window.sizeX - 20, window.sizeY - 4);
 
-            window.SetLine(map.name, posX + width - 5 - map.name.Length, posY);
+            window.SetLine(gameState.mapName, posX + width - 5 - gameState.mapName.Length, posY);
 
             UpdateMap();
         }
@@ -43,26 +32,17 @@ namespace MMogri
                 window.SetPosition(posX + 1, height - y);
                 for (int x = 0; x < width - 2; x++)
                 {
-                    int x0 = player.x - (int)(width * .5f) + x;
-                    int y0 = player.y - (int)(height * .5f) + y;
+                    int x0 = gameState.player.x - (int)(width * .5f) + x;
+                    int y0 = gameState.player.y - (int)(height * .5f) + y;
 
-                    if (x0 == player.x && y0 == player.y)
+                    if (x0 >= 0 && x0 < gameState.mapSizeX && y0 >= 0 && y0 < gameState.mapSizeY)
                     {
-                        window.SetNext('P');
+                        window.SetColor((Color)gameState.GetMapTile(x0, y0).color);
+                        window.SetNext(gameState.GetMapTile(x0, y0).tag);
                     }
                     else
                     {
-                        if (map.CheckTileBounds(x0, y0))
-                        {
-                            Tile t = map[x0, y0];
-                            TileType tt = tileset.tileTypes[t.tileType];
-                            window.SetColor(tt.GetColor(t.lightLvl));
-                            window.SetNext(tt.GetTag(t.lightLvl));
-                        }
-                        else
-                        {
-                            window.SetNext(' ');
-                        }
+                        window.SetNext(' ');
                     }
                 }
             }

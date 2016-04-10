@@ -53,37 +53,37 @@ namespace MMogri
             else return tagLit;
         }
 
-        public void WriteBytes(BinaryWriter w)
-        {
-            w.Write(id);
-            w.Write(name);
+        //public void WriteBytes(BinaryWriter w)
+        //{
+        //    w.Write(id);
+        //    w.Write(name);
 
-            w.Write(tagLit);
-            w.Write((int)tagColorLit);
-            w.Write(tagDark);
-            w.Write((int)tagColorDark);
+        //    w.Write(tagLit);
+        //    w.Write((int)tagColorLit);
+        //    w.Write(tagDark);
+        //    w.Write((int)tagColorDark);
 
-            w.Write(solid);
-            w.Write(translucent);
-            w.Write(lightEmission);
-        }
+        //    w.Write(solid);
+        //    w.Write(translucent);
+        //    w.Write(lightEmission);
+        //}
 
-        public static TileType FromBytes(BinaryReader r)
-        {
-            TileType t = new TileType(
-                r.ReadByte(),
-                r.ReadString(),
+        //public static TileType FromBytes(BinaryReader r)
+        //{
+        //    TileType t = new TileType(
+        //        r.ReadByte(),
+        //        r.ReadString(),
 
-                r.ReadChar(),
-                (Color)r.ReadInt32(),
-                r.ReadChar(),
-                (Color)r.ReadInt32(),
+        //        r.ReadChar(),
+        //        (Color)r.ReadInt32(),
+        //        r.ReadChar(),
+        //        (Color)r.ReadInt32(),
 
-                r.ReadBoolean(),
-                r.ReadBoolean(),
-                r.ReadByte()
-                );
-            return t;
-        }
+        //        r.ReadBoolean(),
+        //        r.ReadBoolean(),
+        //        r.ReadByte()
+        //        );
+        //    return t;
+        //}
     }
 }

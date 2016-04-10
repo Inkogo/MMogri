@@ -79,6 +79,7 @@
     <Compile Include="Bitmask.cs" />
     <Compile Include="CharacterClassInf.cs" />
     <Compile Include="CharacterStats.cs" />
+    <Compile Include="ClientGameState.cs" />
     <Compile Include="CmdConsole.cs" />
     <Compile Include="Color.cs" />
     <Compile Include="Connection.cs" />
