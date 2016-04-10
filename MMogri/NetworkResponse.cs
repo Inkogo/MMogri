@@ -15,7 +15,10 @@ namespace MMogri
             Undefined,
             AccountLogin,
             AccountCreate,
+            PlayerJoined,
             KeybindsInfo,
+            MapInfo,
+            MapUpdate,
         }
 
         public enum ErrorCode

@@ -17,6 +17,8 @@ namespace MMogri.Gameplay
         public int lvl;
         public int exp;
 
+        public CharacterStats stats;
+
         public Player()
         {
             Id = Guid.NewGuid();

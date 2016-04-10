@@ -4,10 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MMogri.Core
+namespace MMogri
 {
-    public class ICmd : Attribute
+    public interface ICompressable
     {
-        public ICmd() { }
+        byte[] ToBytes();
+
+        void FromBytes(byte[] b);
     }
 }

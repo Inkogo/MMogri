@@ -35,6 +35,7 @@ namespace MMogri.Security
                 new SQLiteWrapper.SqlItem("PosY", SQLiteWrapper.SQLiteType.INTEGER, typeof(Player).GetField("y") ),
                 new SQLiteWrapper.SqlItem("Lvl", SQLiteWrapper.SQLiteType.INTEGER, typeof(Player).GetField("lvl") ),
                 new SQLiteWrapper.SqlItem("Exp", SQLiteWrapper.SQLiteType.INTEGER, typeof(Player).GetField("exp") ),
+                new SQLiteWrapper.SqlItem("Stats", SQLiteWrapper.SQLiteType.BLOB, typeof(Player).GetField("stats"), false, new ICompressableToBytesConverter<CharacterStats>() ),
             }));
         }
 
@@ -72,7 +73,7 @@ namespace MMogri.Security
 
         public Player CreatePlayer(string name, Guid account, Guid map, int x, int y)
         {
-            Player p = new Player()
+            Player p = new Player()     //change this to a constructor!
             {
                 name = name,
                 accountId = account,
@@ -81,6 +82,7 @@ namespace MMogri.Security
                 y = y,
                 lvl = 1,
                 exp = 0,
+                stats = new CharacterStats(),
             };
 
             playerLoader.AddItem(p);

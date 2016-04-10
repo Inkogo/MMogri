@@ -11,11 +11,13 @@ namespace MMogri.Core
     class GameCore
     {
         GameLoader loader;
+        Action<MapUpdate> updateCallback;
         //tileset, itemSet, etc
 
-        public GameCore(GameLoader loader)
+        public GameCore(GameLoader loader, Action<MapUpdate> updateCallback)
         {
             this.loader = loader;
+            this.updateCallback = updateCallback;
         }
 
         [LuaFunc]
@@ -31,7 +33,14 @@ namespace MMogri.Core
         }
 
         [LuaFunc]
-        public void MoveEntity(Entity e, int x, int y)
+        public void SetTile(Guid mapId, int x, int y, int tileId)
+        {
+            loader.GetMap(mapId).SetTileType(x, y, tileId);
+            updateCallback(new MapUpdate(mapId, x, y, -1, tileId));
+        }
+
+        [LuaFunc]
+        public void MoveEntity(Entity e, Guid mapId, int x, int y)
         {
             e.x += x;
             e.y += y;
@@ -43,6 +52,12 @@ namespace MMogri.Core
             p.mapId = loader.GetMap(map).Id;
             p.x = x;
             p.y = y;
+        }
+
+        [LuaFunc]
+        public void TestSend (Guid mapId, int x, int y)
+        {
+            updateCallback(new MapUpdate(mapId, x, y, 2));
         }
     }
 }

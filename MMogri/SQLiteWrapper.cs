@@ -8,7 +8,7 @@ namespace MMogri.Utils
     {
         public enum SQLiteType
         {
-            INTEGER, TEXT, REAL
+            INTEGER, TEXT, REAL, BLOB
         }
 
         public struct SqlItem

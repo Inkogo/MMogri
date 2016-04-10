@@ -53,4 +53,20 @@ namespace MMogri.Utils
             return ((DateTime)o).ToString();
         }
     }
+
+    public class ICompressableToBytesConverter<T> : SQLiteDataConverter where T : ICompressable, new()
+    {
+        public override object ConvertRead(object o)
+        {
+            T t = new T();
+            t.FromBytes((byte[])o);
+            return t;
+        }
+
+        public override object CovertWrite(object o)
+        {
+            ICompressable c = o as ICompressable;
+            return c.ToBytes();
+        }
+    }
 }

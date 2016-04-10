@@ -46,9 +46,6 @@ namespace MMogri.Utils
 
         void CreateDB(string path)
         {
-            //dbconn = (SQLiteConnection)new SQLiteConnection( "URI=file:" + path );
-            //dbconn.Open();
-
             SQLiteCommand dbcmd = dbconn.CreateCommand();
             dbcmd.CommandText = wrapper.CreateCmd();
             dbcmd.ExecuteNonQuery();
@@ -84,6 +81,11 @@ namespace MMogri.Utils
                         dbcmd.Parameters.Add(new SQLiteParameter("@param" + n, (string)itm.GetValue(t))); break;
                     case SQLiteWrapper.SQLiteType.REAL:
                         dbcmd.Parameters.Add(new SQLiteParameter("@param" + n, (float)itm.GetValue(t))); break;
+                    case SQLiteWrapper.SQLiteType.BLOB:
+                        SQLiteParameter p = new SQLiteParameter("@param" + n, System.Data.DbType.Binary);
+                        p.Value = itm.GetValue(t);
+                        dbcmd.Parameters.Add(p);
+                        break;
                 }
                 n++;
             }
@@ -120,6 +122,9 @@ namespace MMogri.Utils
                                 o = reader.GetString(n); break;
                             case SQLiteWrapper.SQLiteType.REAL:
                                 o = reader.GetFloat(n); break;
+                            case SQLiteWrapper.SQLiteType.BLOB:
+                                o = reader[itm.name];
+                                break;
                         }
                         itm.SetValue(t, o);
                     }

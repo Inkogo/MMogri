@@ -23,14 +23,16 @@ namespace MMogri
         LoginHandler login;
 
         Dictionary<Guid, Player> activePlayers;
+        List<MapUpdate> mapUpdates;
 
         public ServerMain(ServerInf serverInf, GameWindow window)
         {
             this.serverInf = serverInf;
 
             loader = new GameLoader();
-            core = new GameCore(loader);
+            core = new GameCore(loader, (MapUpdate m) => mapUpdates.Add(m));
             activePlayers = new Dictionary<Guid, Player>();
+            mapUpdates = new List<MapUpdate>();
 
             loader.Load(ServerPath);
 
@@ -38,6 +40,7 @@ namespace MMogri
             login = new LoginHandler(ServerPath);
 
             lua.RegisterObserved("Core", core);
+            lua.Run(Path.Combine(ServerPath, "testLua.lua"));       //make this nicer!
         }
 
         public void ServerTick()
@@ -54,6 +57,32 @@ namespace MMogri
                     e.OnTick();
                 }
             }
+
+            foreach (MapUpdate u in mapUpdates)
+            {
+                NetworkResponse p = new NetworkResponse();
+                p.type = NetworkResponse.ResponseType.MapUpdate;
+                p.AppendObject((BinaryWriter w) =>
+                {
+                    w.Write(u.x);
+                    w.Write(u.y);
+
+                    w.Write(u.changeLight);
+                    if (u.changeLight) w.Write(u.lightLvl);
+                    w.Write(u.changeTile);
+                    if (u.changeTile) w.Write(u.tileId);
+                    w.Write(u.changeItem);
+                    if (u.changeItem) w.Write(u.itemId);
+                    w.Write(u.changeCovered);
+                    if (u.changeCovered) w.Write(u.covered);
+                });
+                foreach(Guid g in activePlayers.Keys)
+                {
+                    if(activePlayers[g].mapId.Equals(u.mapId))
+                        NetworkHandler.Instance.SendNetworkResponse(g, p);
+                }
+            }
+            mapUpdates.Clear();
         }
 
         public void ProcessNetworkRequest(NetworkRequest r, Guid g)
@@ -108,7 +137,12 @@ namespace MMogri
                         //0=playerName, 1=account, 2=sessionID
                         Player pp = login.FindPlayer(new Guid(r.requestParams[1]), r.requestParams[0]);
                         if (login.ValidateSessionId(new Guid(r.requestParams[1]), new Guid(r.requestParams[2])))
+                        {
                             RegisterPlayer(pp, g);
+                            RespondPlayerJoined(true, g);
+                        }
+                        else
+                            RespondPlayerJoined(false, g);
                     }
                     break;
                 case NetworkRequest.RequestType.GetKeybinds:
@@ -119,7 +153,7 @@ namespace MMogri
                     break;
                 case NetworkRequest.RequestType.PlayerInput:
                     //handle params here later!
-                    lua.CallFunc(Path.Combine(ServerPath, "testLua.lua"), r.requestParams[0], activePlayers[g]);
+                    lua.CallFunc(Path.Combine(ServerPath, "testLua.lua"), r.requestAction, activePlayers[g]);
                     break;
             }
         }
@@ -148,9 +182,18 @@ namespace MMogri
             NetworkHandler.Instance.SendNetworkResponse(g, p);
         }
 
-        void RespondPasswordChanged (bool b, Guid g)
+        void RespondPasswordChanged(bool b, Guid g)
         {
             NetworkResponse p = new NetworkResponse();
+            p.type = NetworkResponse.ResponseType.Undefined;        //change later?
+            p.error = b ? NetworkResponse.ErrorCode.None : NetworkResponse.ErrorCode.SecurityFailed;
+            NetworkHandler.Instance.SendNetworkResponse(g, p);
+        }
+
+        void RespondPlayerJoined(bool b, Guid g)
+        {
+            NetworkResponse p = new NetworkResponse();
+            p.type = NetworkResponse.ResponseType.PlayerJoined;
             p.error = b ? NetworkResponse.ErrorCode.None : NetworkResponse.ErrorCode.SecurityFailed;
             NetworkHandler.Instance.SendNetworkResponse(g, p);
         }
@@ -170,6 +213,27 @@ namespace MMogri
                 }
             });
             NetworkHandler.Instance.SendNetworkResponse(g, p);
+        }
+
+        void RespondMap(Map m, Guid g)
+        {
+            NetworkResponse p = new NetworkResponse();
+            p.type = NetworkResponse.ResponseType.MapInfo;
+            if (m == null)
+                p.error = NetworkResponse.ErrorCode.DataNotFound;
+            p.AppendObject((BinaryWriter w) =>
+            {
+                w.Write(m.name);
+                w.Write(m.sizeX);
+                w.Write(m.sizeY);
+                foreach (Tile t in m.tiles)
+                {
+                    w.Write(t.covered);
+                    w.Write(t.lightLvl);
+                    w.Write(t.itemType);
+                    w.Write(t.tileType);
+                }
+            });
         }
 
         string ServerPath

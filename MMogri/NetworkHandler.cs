@@ -84,14 +84,14 @@ namespace MMogri.Network
         //        Debug.Log("Ip is not valid!");
         //}
 
-        [ICmd]
+        [Cmd]
         public void LeaveServer()
         {
             connection.sock.Disconnect(false);
             connection = null;
         }
 
-        [ICmd]
+        [Cmd]
         public static string GetPublicIp()
         {
             string url = "http://checkip.dyndns.org";

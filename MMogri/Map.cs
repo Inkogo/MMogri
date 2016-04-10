@@ -51,11 +51,6 @@ namespace MMogri.Gameplay
             SetTile(x, y, (Tile t) => t.tileType = id);
         }
 
-        public void SetTileItel(int x, int y, int id)
-        {
-            SetTile(x, y, (Tile t) => t.itemType = id);
-        }
-
         public void SetTileLight(int x, int y, int lvl)
         {
             SetTile(x, y, (Tile t) => t.lightLvl = lvl);

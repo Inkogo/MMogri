@@ -132,14 +132,14 @@ namespace MMogri.Core
             {
                 foreach (MethodInfo i in t.GetMethods(BindingFlags.Static | BindingFlags.Public))
                 {
-                    ICmd c = i.GetCustomAttribute<ICmd>();
+                    Core.Cmd c = i.GetCustomAttribute<Core.Cmd>();
                     if (c != null)
                         methods.Add(i.Name, i);
                 }
             }
         }
 
-        [ICmd]
+        [Core.Cmd]
         public static void HelpParameters(string s)
         {
             if (!Instance.methods.ContainsKey(s))
@@ -156,7 +156,7 @@ namespace MMogri.Core
             Debug.Log(t);
         }
 
-        [ICmd]
+        [Core.Cmd]
         public static void HelpList()
         {
             foreach(MethodInfo m in Instance.methods.Values)

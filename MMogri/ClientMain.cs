@@ -26,6 +26,8 @@ namespace MMogri
         LoginScreen loginScreen;
         MapScreen mapScreen;
 
+        bool inputLock;
+
         public ClientMain(GameWindow window, InputHandler input)
         {
             serverName = "MyClient";          //hack!
@@ -37,9 +39,13 @@ namespace MMogri
             mapScreen = new MapScreen(window, input);
         }
 
+        int tick = 0;
         public void ClientTick()
         {
-            if (keybinds == null) return;
+            System.Diagnostics.Debug.Print("Client Tick! " + inputLock+ ", " + tick);
+            tick++;
+
+            if (keybinds == null || inputLock) return;
 
             input.CatchInput();
             foreach (Keybind b in keybinds)
@@ -51,6 +57,7 @@ namespace MMogri
                         requestType = NetworkRequest.RequestType.PlayerInput,
                         requestAction = b.action,
                     });
+                    inputLock = true;
                 }
             }
         }
@@ -79,7 +86,12 @@ namespace MMogri
                         loginScreen.LoginAccount();
                     }
                     break;
+                case NetworkResponse.ResponseType.PlayerJoined:
+                    Console.WriteLine("Successfully joined player!");
+                    if (!LoadKeybinds())
+                        RequestDefaultKeybinds();
 
+                    break;
                 case NetworkResponse.ResponseType.KeybindsInfo:
                     Keybind[] k = null;
                     r.ReadObject((BinaryReader p) =>
@@ -93,6 +105,12 @@ namespace MMogri
                     keybinds = k;
                     SaveKeybinds();
 
+                    break;
+                case NetworkResponse.ResponseType.MapUpdate:
+                    inputLock = false;
+                    Console.WriteLine("Change! " + tick);
+
+                    //mapScreen.UpdateMap();
                     break;
             }
         }

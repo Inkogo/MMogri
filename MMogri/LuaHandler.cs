@@ -48,7 +48,7 @@ namespace MMogri.Scripting
 
         public void CallFunc(string path, string func, object o)
         {
-            Run(path);
+            //Run(path);
             LuaFunction f = lua[func] as LuaFunction;
             if (f != null)
             {
