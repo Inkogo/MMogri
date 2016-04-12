@@ -19,6 +19,7 @@ namespace MMogri
             KeybindsInfo,
             MapInfo,
             MapUpdate,
+            ChatMessage,
         }
 
         public enum ErrorCode

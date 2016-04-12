@@ -79,7 +79,13 @@ namespace MMogri.Gameplay
             }
         }
 
-        public void UpdateLight(int x, int y, int f, ref List<Point> points, Tileset t)
+        public void UpdateLightMap (int x, int y, Tileset t)
+        {
+            List<Point> points = new List<Point>();
+            UpdateLight(x, y, t.tileTypes[this[x, y].tileType].lightEmission, ref points, t);
+        }
+
+        void UpdateLight(int x, int y, int f, ref List<Point> points, Tileset t)
         {
             if (!this[x, y].covered && f < baseLightLvl)
                 f = baseLightLvl;

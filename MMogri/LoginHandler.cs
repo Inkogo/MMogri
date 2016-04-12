@@ -89,6 +89,11 @@ namespace MMogri.Security
             return p;
         }
 
+        public void UpdatePlayer(Player p)
+        {
+            playerLoader.UpdateItem(p, "Where Id = '" + p.Id + "'");
+        }
+
         public Guid GenSessionId(Guid AccountId)
         {
             Guid s = Guid.NewGuid();

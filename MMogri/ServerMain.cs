@@ -21,6 +21,7 @@ namespace MMogri
         GameCore core;
         LuaHandler lua;
         LoginHandler login;
+        CmdConsole cmdHandler;
 
         Dictionary<Guid, Player> activePlayers;
         List<MapUpdate> mapUpdates;
@@ -33,6 +34,7 @@ namespace MMogri
             core = new GameCore(loader, (MapUpdate m) => mapUpdates.Add(m));
             activePlayers = new Dictionary<Guid, Player>();
             mapUpdates = new List<MapUpdate>();
+            cmdHandler = new CmdConsole();
 
             loader.Load(ServerPath);
 
@@ -58,28 +60,21 @@ namespace MMogri
                 }
             }
 
-            foreach (MapUpdate u in mapUpdates)
+            foreach (Guid m in mapUpdates.Select(x => x.mapId).Distinct())
             {
                 NetworkResponse p = new NetworkResponse();
                 p.type = NetworkResponse.ResponseType.MapUpdate;
+                MapUpdate[] up = mapUpdates.Where(x => x.mapId == m).ToArray();
                 p.AppendObject((BinaryWriter w) =>
                 {
-                    w.Write(u.x);
-                    w.Write(u.y);
-
-                    w.Write(u.changeLight);
-                    if (u.changeLight) w.Write(u.lightLvl);
-                    w.Write(u.changeTile);
-                    if (u.changeTile) w.Write(u.tileId);
-                    w.Write(u.changeItem);
-                    if (u.changeItem) w.Write(u.itemId);
-                    w.Write(u.changeCovered);
-                    if (u.changeCovered) w.Write(u.covered);
+                    w.Write(up.Length);
+                    foreach (MapUpdate u in up)
+                        w.Write(u.ToBytes());
                 });
-                foreach(Guid g in activePlayers.Keys)
+
+                foreach (Guid g in activePlayers.Keys.Where(x => activePlayers[x].mapId.Equals(m)))
                 {
-                    if(activePlayers[g].mapId.Equals(u.mapId))
-                        NetworkHandler.Instance.SendNetworkResponse(g, p);
+                    NetworkHandler.Instance.SendNetworkResponse(g, p);
                 }
             }
             mapUpdates.Clear();
@@ -152,8 +147,39 @@ namespace MMogri
                     }
                     break;
                 case NetworkRequest.RequestType.PlayerInput:
-                    //handle params here later!
-                    lua.CallFunc(Path.Combine(ServerPath, "testLua.lua"), r.requestAction, activePlayers[g]);
+                    {
+                        //handle params here later!
+                        lua.CallFunc(Path.Combine(ServerPath, "testLua.lua"), r.requestAction, activePlayers[g]);
+                    }
+                    break;
+                case NetworkRequest.RequestType.ClientMessage:
+                    {
+                        //0=msg
+                        string msg = r.requestParams[0];
+                        if (msg[0] == '/')
+                        {
+                            cmdHandler.ExecCmd(msg.TrimStart());
+                        }
+                        else
+                        {
+                            Player pl = activePlayers[g];
+                            NetworkResponse n = new NetworkResponse();
+                            n.type = NetworkResponse.ResponseType.ChatMessage;
+                            n.AppendObject((BinaryWriter w) => w.Write(pl.name + ": " + msg));
+
+                            foreach (Guid i in activePlayers.Keys.Where(x => activePlayers[x].mapId == pl.mapId))
+                            {
+                                NetworkHandler.Instance.SendNetworkResponse(i, n);
+                            }
+                        }
+                    }
+                    break;
+                case NetworkRequest.RequestType.Disconnect:
+                    {
+                        Player pl = activePlayers[g];
+                        login.UpdatePlayer(pl);
+                        UnregisterPlayer(g);
+                    }
                     break;
             }
         }
@@ -163,6 +189,14 @@ namespace MMogri
             if (activePlayers.ContainsKey(g)) return;
             activePlayers.Add(g, p);
             Debugging.Debug.Log(p.name + " joined the server!");
+        }
+
+        void UnregisterPlayer(Guid g)
+        {
+            if (!activePlayers.ContainsKey(g)) return;
+            Debugging.Debug.Log(activePlayers[g].name + " left the server!");
+
+            activePlayers.Remove(g);
         }
 
         void RespondAccountJoined(Account a, Guid g)

@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace MMogri
 {
-    class MapUpdate
+    class MapUpdate : ICompressable
     {
         public Guid mapId;
         public int x, y;
@@ -50,5 +52,30 @@ namespace MMogri
                 this.covered = covered == 0 ? false : true;
             }
         }
+
+        public byte[] ToBytes()
+        {
+            using (MemoryStream mem = new MemoryStream())
+            {
+                using (BinaryWriter writer = new BinaryWriter(mem))
+                {
+                    writer.Write(x);
+                    writer.Write(y);
+
+                    writer.Write(changeLight);
+                    if (changeLight) writer.Write(lightLvl);
+                    writer.Write(changeTile);
+                    if (changeTile) writer.Write(tileId);
+                    writer.Write(changeItem);
+                    if (changeItem) writer.Write(itemId);
+                    writer.Write(changeCovered);
+                    if (changeCovered) writer.Write(covered);
+
+                    return mem.ToArray();
+                }
+            }
+        }
+
+        public void FromBytes(byte[] b) { }
     }
 }

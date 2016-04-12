@@ -18,6 +18,8 @@ namespace MMogri.Network
             Leave,
             GetKeybinds,
             PlayerInput,
+            ClientMessage,
+            Disconnect,
         }
 
         public RequestType requestType;

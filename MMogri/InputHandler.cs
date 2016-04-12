@@ -3,24 +3,38 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace MMogri.Input
 {
     class InputHandler
     {
-        ConsoleKeyInfo keyInf;
+        ConsoleKeyInfo? keyInf;
 
-        public void CatchInput ()
+        public void CatchInput()
         {
-            keyInf = Console.ReadKey(true);
+            var thread = new Thread(() =>
+            {
+                bool keyHit = false;
+                while (!keyHit)
+                {
+                    keyInf = System.Console.ReadKey(true);
+
+                    keyHit = keyInf != null;
+                }
+            });
+
+            thread.IsBackground = true;
+            thread.Start();
         }
 
         public bool GetKey(KeyCode key, KeyCode altKey = KeyCode.NoName)
         {
             if (keyInf == null) return false;
 
-            if (keyInf.Key == key.ToConsoleKey() || keyInf.Key == altKey.ToConsoleKey())
+            if (((ConsoleKeyInfo)keyInf).Key == key.ToConsoleKey() || ((ConsoleKeyInfo)keyInf).Key == altKey.ToConsoleKey())
             {
+                keyInf = null;
                 return true;
             }
             return false;
