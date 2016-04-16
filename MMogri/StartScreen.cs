@@ -10,12 +10,16 @@ namespace MMogri
 {
     class StartScreen : ContentFrame
     {
-        int menu = 0;
         int selection = 0;
 
         public StartScreen(GameWindow w, InputHandler i) : base(w, i) { }
 
         override public void Start()
+        {
+
+        }
+
+        public int ShowScreen()
         {
             DrawFrame(2, window.CenterY - 2, window.sizeX - 4, 4);
             window.Wait(.1f);
@@ -25,48 +29,39 @@ namespace MMogri
             window.Wait(.1f);
             DrawFrame(2, 2, window.sizeX - 4, window.sizeY - 4);
 
-            DrawMainScreen();
-        }
-
-        void DrawMainScreen()
-        {
             window.SetRect(title, window.CenterX - 20, 6, 40, 12);
             window.SetLine("@made by Inko (inkooognito@gmail.com) 2016", window.CenterX - 20, window.sizeY - 5);
 
-            window.SetLine("Host Server", window.CenterX - 6, 20);
-            window.SetLine("Join Server", window.CenterX - 6, 24);
-            window.SetLine("Start Cmd Mode", window.CenterX - 6, 28);
+            window.SetLine("[1] Host Server", window.CenterX - 10, 24);
+            window.SetLine("[2] Join Server", window.CenterX - 10, 26);
+            window.SetLine("[3] Debug Mode", window.CenterX - 10, 28);
 
-            UpdateSelection();
 
-            while (menu == 0)
+            while (true)
             {
                 input.CatchInput();
-                if (input.GetKey(KeyCode.UpArrow, KeyCode.W))
+                if (input.GetKey(KeyCode.D1))
                 {
-                    selection--;
-                    if (selection < 0) selection = 2;
-                    UpdateSelection();
+                    selection = 0;
+                    break;
                 }
-                else if (input.GetKey(KeyCode.DownArrow, KeyCode.S))
+                else if (input.GetKey(KeyCode.D2))
                 {
-                    selection++;
-                    if (selection > 2) selection = 0;
-                    UpdateSelection();
+                    selection = 1;
+                    break;
                 }
-                else if (input.GetKey(KeyCode.Enter))
+                else if (input.GetKey(KeyCode.D3))
                 {
-                    ClearFrame();
-                    menu = 1;
+                    selection = 2;
+                    break;
                 }
             }
-        }
 
-        void UpdateSelection()
-        {
-            window.SetChar(selection == 0 ? '♣' : ' ', window.CenterX - 10, 20);
-            window.SetChar(selection == 1 ? '♣' : ' ', window.CenterX - 10, 24);
-            window.SetChar(selection == 2 ? '♣' : ' ', window.CenterX - 10, 28);
+            window.Wait(.1f);
+            window.Clear();
+
+            window.SetPosition(0, 0);
+            return selection;
         }
 
         string title = @"

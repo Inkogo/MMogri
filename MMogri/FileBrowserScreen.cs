@@ -13,7 +13,8 @@ namespace MMogri
     {
         string targetFile;
 
-        public FileBrowserScreen(GameWindow w, InputHandler i, string targetFile) : base(w, i) {
+        public FileBrowserScreen(GameWindow w, InputHandler i, string targetFile) : base(w, i)
+        {
             this.targetFile = targetFile;
         }
 
@@ -26,7 +27,7 @@ namespace MMogri
             string[] dirs = Directory.GetDirectories(dir);
             string file = Path.Combine(dir, targetFile);
 
-            Console.WriteLine("[<] [>]");
+            Console.WriteLine("[<] [" + (chunk + 1) + "/" + ((int)Math.Floor(dirs.Length / 9f) + 1) + "] [>]");
             Console.WriteLine("[R] ...");
             for (int i = 0; i < 9; i++)
             {

@@ -134,8 +134,14 @@ namespace MMogri
                 case NetworkRequest.RequestType.CreateAccount:
                     {
                         //0=email, 1=password
-                        if (login.FindAccount(r.requestParams[0]) == null)
-                            login.CreateAccount(r.requestParams[0], new Guid(r.requestParams[1]));
+                        string mail = r.requestParams[0].ToLower();
+                        if (!serverInf.validateEmail || mail.IsEmailAdress() )
+                        {
+                            if (login.FindAccount(mail) == null)
+                            {
+                                login.CreateAccount(mail, new Guid(r.requestParams[1]));
+                            }
+                        }
                     }
                     break;
                 case NetworkRequest.RequestType.CreatePlayer:
@@ -145,6 +151,7 @@ namespace MMogri
                         {
                             Player pl = login.CreatePlayer(r.requestParams[0], new Guid(r.requestParams[1]), loader.GetMap("Test Map").Id, 3, 3);
                             RegisterPlayer(pl, g);
+                            RespondPlayerJoined(true, g);
                         }
                     }
                     break;

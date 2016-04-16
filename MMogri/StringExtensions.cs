@@ -29,5 +29,11 @@ namespace MMogri
             }
             return builder.ToString();
         }
+
+        public static bool IsEmailAdress(this string s)
+        {
+            var addr = new System.Net.Mail.MailAddress(s);
+            return addr.Address == s;
+        }
     }
 }

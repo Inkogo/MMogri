@@ -16,6 +16,8 @@ namespace MMogri.Core
         public string authentificationEmail;
         public string authentificationEmailPassword;
 
+        public bool validateEmail;
+
         public int saveTickInterval;
     }
 }

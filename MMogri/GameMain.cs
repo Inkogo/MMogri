@@ -11,6 +11,10 @@ namespace MMogri.Core
 {
     class GameMain
     {
+        public enum LaunchMode
+        {
+            server, client, debugMode
+        }
         GameWindow gameWindow;
         InputHandler input;
 
@@ -31,11 +35,31 @@ namespace MMogri.Core
 
         public void Start()
         {
-            ServerMain server = InitServer();
-            ticks.Add(server.ServerTick);
+            // i really dont like this!
+            StartScreen startScreen = new StartScreen(gameWindow, input);
+            LaunchMode m = (LaunchMode)startScreen.ShowScreen();
 
-            ClientMain client = InitClient();
-            ticks.Add(client.ClientTick);
+            ServerMain server;
+            ClientMain client;
+
+            switch (m)
+            {
+                case LaunchMode.server:
+                    server = InitServer();
+                    ticks.Add(server.ServerTick);
+                    CmdConsole cmd = new CmdConsole();
+                    break;
+                case LaunchMode.client:
+                    client = InitClient();
+                    ticks.Add(client.ClientTick);
+                    break;
+                case LaunchMode.debugMode:
+                    server = InitServer();
+                    ticks.Add(server.ServerTick);
+                    client = InitClient();
+                    ticks.Add(client.ClientTick);
+                    break;
+            }
 
             while (true)
             {

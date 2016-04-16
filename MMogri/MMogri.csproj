@@ -85,7 +85,7 @@
     <Compile Include="CmdConsole.cs" />
     <Compile Include="Color.cs" />
     <Compile Include="FileBrowserScreen.cs" />
-    <Compile Include="TestFolder\CommitTest.cs" />
+    <Compile Include="CommitTest.cs" />
     <Compile Include="Connection.cs" />
     <Compile Include="ContentFrame.cs" />
     <Compile Include="Curve.cs" />
@@ -150,7 +150,9 @@
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="TestFolder\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>
