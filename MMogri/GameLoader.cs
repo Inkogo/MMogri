@@ -12,12 +12,12 @@ namespace MMogri
 {
     class GameLoader
     {
-        List<RaceInf> raceInf;
-        List<CharacterClassInf> charaInf;
-        List<Map> maps;
-        List<TileType> tileTypes;
-        List<Item> items;
-        List<Quest> quests;
+        Dictionary<string, RaceInf> raceInf;
+        Dictionary<string, CharacterClassInf> charaInf;
+        Dictionary<string, Map> maps;
+        Dictionary<string, TileType> tileTypes;
+        Dictionary<string, Item> items;
+        Dictionary<string, Quest> quests;
 
         Tileset tileset;
 
@@ -32,9 +32,9 @@ namespace MMogri
             quests = TryLoad<Quest>(fullPath, "Quests");
         }
 
-        List<T> TryLoad<T>(string path, string sub) where T : new()
+ Dictionary<string, T> TryLoad<T>(string path, string sub) where T : new()
         {
-            List<T> t = new List<T>();
+       Dictionary<string,T> t = new Dictionary<string,T>();
 
             string fullPath = Path.Combine(path, sub);
             Directory.CreateDirectory(fullPath);
@@ -45,13 +45,14 @@ namespace MMogri
             if (files.Length == 0)
             {
                 T def = new T();
-                Save<T>(def, Path.Combine(fullPath, "default.xml"));
-                t.Add(def);
+                string p = Path.Combine(fullPath, "default.xml");
+                Save<T>(def, p);
+                t.Add(p, def);
             }
 
             foreach (string p in files)
             {
-                t.Add(FileUtils.LoadFromXml<T>(p));
+                t.Add(p, FileUtils.LoadFromXml<T>(p));
             }
 
             return t;
@@ -74,7 +75,7 @@ namespace MMogri
 
         public Map GetMap(Func<Map, bool> check)
         {
-            foreach (Map m in maps)
+            foreach (Map m in maps.Values)
             {
                 if (check(m))
                     return m;
@@ -82,12 +83,22 @@ namespace MMogri
             return null;
         }
 
+        public void SaveMaps()
+        {
+            foreach (string s in maps.Keys.Where(x => maps[x].isDirty))
+            {
+                Debugging.Debug.Log("Saving...");
+                Save<Map>(maps[s], s);
+                maps[s].isDirty = false;
+            }
+        }
+
         public Tileset GetTileset
         {
             get
             {
                 if (tileset == null)
-                    tileset = new Tileset(tileTypes.OrderBy(x => x.id).ToArray());
+                    tileset = new Tileset(tileTypes.Values.OrderBy(x => x.id).ToArray());
                 return tileset;
             }
         }

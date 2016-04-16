@@ -9,9 +9,22 @@ namespace MMogri
 {
     public class Entity
     {
+        public Guid Id;
+        public string name;
+
         public int x;
         public int y;
-        public string name;
+
+        public Entity() : this("Default", 0, 0)
+        { }
+
+        public Entity(string n, int x, int y)
+        {
+            Id = Guid.NewGuid();
+            name = n;
+            this.x = x;
+            this.y = y;
+        }
 
         virtual public char Tag
         {

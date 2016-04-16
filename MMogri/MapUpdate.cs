@@ -8,9 +8,8 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace MMogri
 {
-    class MapUpdate : ICompressable
+    class MapUpdate : ClientUpdate
     {
-        public Guid mapId;
         public int x, y;
 
         public bool changeLight;
@@ -25,9 +24,8 @@ namespace MMogri
         public bool changeCovered;
         public bool covered;
 
-        public MapUpdate(Guid mapId, int x, int y, int lightLvl = -1, int tileId = -1, int itemId = -1, int covered = -1)
+        public MapUpdate(Guid mapId, int x, int y, int lightLvl = -1, int tileId = -1, int itemId = -1, int covered = -1) : base(mapId, ClientUpdateType.mapUpdate)
         {
-            this.mapId = mapId;
             this.x = x;
             this.y = y;
 
@@ -53,29 +51,29 @@ namespace MMogri
             }
         }
 
-        public byte[] ToBytes()
+        public override void WriteToBytes(BinaryWriter writer)
         {
-            using (MemoryStream mem = new MemoryStream())
-            {
-                using (BinaryWriter writer = new BinaryWriter(mem))
-                {
-                    writer.Write(x);
-                    writer.Write(y);
+            writer.Write(x);
+            writer.Write(y);
 
-                    writer.Write(changeLight);
-                    if (changeLight) writer.Write(lightLvl);
-                    writer.Write(changeTile);
-                    if (changeTile) writer.Write(tileId);
-                    writer.Write(changeItem);
-                    if (changeItem) writer.Write(itemId);
-                    writer.Write(changeCovered);
-                    if (changeCovered) writer.Write(covered);
-
-                    return mem.ToArray();
-                }
-            }
+            writer.Write(changeLight);
+            if (changeLight) writer.Write(lightLvl);
+            writer.Write(changeTile);
+            if (changeTile) writer.Write(tileId);
+            writer.Write(changeItem);
+            if (changeItem) writer.Write(itemId);
+            writer.Write(changeCovered);
+            if (changeCovered) writer.Write(covered);
         }
 
-        public void FromBytes(byte[] b) { }
+        public override void ReadFromBytes(BinaryReader r)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void FromBytes(byte[] b)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

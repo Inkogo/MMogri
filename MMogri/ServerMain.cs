@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -24,16 +25,21 @@ namespace MMogri
         CmdConsole cmdHandler;
 
         Dictionary<Guid, Player> activePlayers;
-        List<MapUpdate> mapUpdates;
+        List<ClientUpdate> clientUpdates;
+        int serverTick;
+        int lastSave;
+
+        ConcurrentStack<ClientUpdate> clientUpdates_;
 
         public ServerMain(ServerInf serverInf, GameWindow window)
         {
             this.serverInf = serverInf;
 
             loader = new GameLoader();
-            core = new GameCore(loader, (MapUpdate m) => mapUpdates.Add(m));
+            core = new GameCore(loader, AddClientUpdate);
             activePlayers = new Dictionary<Guid, Player>();
-            mapUpdates = new List<MapUpdate>();
+            clientUpdates = new List<ClientUpdate>();
+            clientUpdates_ = new ConcurrentStack<ClientUpdate>();
             cmdHandler = new CmdConsole();
 
             loader.Load(ServerPath);
@@ -47,37 +53,49 @@ namespace MMogri
 
         public void ServerTick()
         {
-            foreach (Guid g in activePlayers.Values.Select(x => x.mapId).Distinct().ToList())
+            lock (clientUpdates_)
             {
-                Map m = loader.GetMap(g);
-                foreach (Tile t in m.tiles)
+                foreach (Guid g in activePlayers.Values.Select(x => x.mapId).Distinct().ToList())
                 {
-                    t.OnTick();
+                    Map m = loader.GetMap(g);
+                    foreach (Tile t in m.tiles)
+                    {
+                        t.OnTick();
+                    }
+                    foreach (Entity e in m.entities)
+                    {
+                        e.OnTick();
+                    }
                 }
-                foreach (Entity e in m.entities)
+
+                foreach (Guid m in clientUpdates_.Select(x => x.mapId).Distinct())       //this is not thread save! netHander changes this array async! needs some sort of locking
                 {
-                    e.OnTick();
+                    NetworkResponse p = new NetworkResponse();
+                    p.type = NetworkResponse.ResponseType.Update;
+                    ClientUpdate[] up = clientUpdates.Where(x => x.mapId == m).ToArray();
+                    p.AppendObject((BinaryWriter w) =>
+                    {
+                        w.Write(up.Length);
+                        foreach (ClientUpdate u in up)
+                            w.Write(u.ToBytes());
+                    });
+                    loader.GetMap(m).isDirty = true;
+
+                    foreach (Guid g in activePlayers.Keys.Where(x => activePlayers[x].mapId.Equals(m)))
+                    {
+                        NetworkHandler.Instance.SendNetworkResponse(g, p);
+                    }
+                }
+                clientUpdates.Clear();
+                clientUpdates_.Clear();
+
+                serverTick++;
+                if (serverTick - lastSave > serverInf.saveTickInterval)
+                {
+                    loader.SaveMaps();
+                    lastSave = serverTick;
                 }
             }
-
-            foreach (Guid m in mapUpdates.Select(x => x.mapId).Distinct())
-            {
-                NetworkResponse p = new NetworkResponse();
-                p.type = NetworkResponse.ResponseType.MapUpdate;
-                MapUpdate[] up = mapUpdates.Where(x => x.mapId == m).ToArray();
-                p.AppendObject((BinaryWriter w) =>
-                {
-                    w.Write(up.Length);
-                    foreach (MapUpdate u in up)
-                        w.Write(u.ToBytes());
-                });
-
-                foreach (Guid g in activePlayers.Keys.Where(x => activePlayers[x].mapId.Equals(m)))
-                {
-                    NetworkHandler.Instance.SendNetworkResponse(g, p);
-                }
-            }
-            mapUpdates.Clear();
         }
 
         public void ProcessNetworkRequest(NetworkRequest r, Guid g)
@@ -181,6 +199,14 @@ namespace MMogri
                         UnregisterPlayer(g);
                     }
                     break;
+            }
+        }
+
+        void AddClientUpdate(ClientUpdate c)
+        {
+            lock (clientUpdates_)
+            {
+                clientUpdates_.Push(c);
             }
         }
 

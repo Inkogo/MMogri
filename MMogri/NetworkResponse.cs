@@ -18,7 +18,7 @@ namespace MMogri
             PlayerJoined,
             KeybindsInfo,
             MapInfo,
-            MapUpdate,
+            Update,
             ChatMessage,
         }
 

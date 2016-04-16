@@ -90,11 +90,13 @@
     <Compile Include="Direction.cs" />
     <Compile Include="EMailHandler.cs" />
     <Compile Include="Entity.cs" />
+    <Compile Include="EntityUpdate.cs" />
     <Compile Include="Equipment.cs" />
     <Compile Include="FileUtils.cs" />
     <Compile Include="GameCore.cs" />
     <Compile Include="GameLoader.cs" />
     <Compile Include="GameMain.cs" />
+    <Compile Include="GameTime.cs" />
     <Compile Include="GameWindow.cs" />
     <Compile Include="Cmd.cs" />
     <Compile Include="ICompressable.cs" />
@@ -125,6 +127,7 @@
     <Compile Include="RPC.cs" />
     <Compile Include="ScalingValue.cs" />
     <Compile Include="SendObject.cs" />
+    <Compile Include="Serializer.cs" />
     <Compile Include="Server.cs" />
     <Compile Include="ServerInf.cs" />
     <Compile Include="ServerMain.cs" />

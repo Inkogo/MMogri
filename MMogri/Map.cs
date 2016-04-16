@@ -20,6 +20,9 @@ namespace MMogri.Gameplay
         public Tile[] tiles;
         public List<Entity> entities;
 
+        [System.NonSerialized]
+        public bool isDirty;
+
         public Map() : this("Default", 32, 32)
         { }
 
@@ -79,7 +82,7 @@ namespace MMogri.Gameplay
             }
         }
 
-        public void UpdateLightMap (int x, int y, Tileset t)
+        public void UpdateLightMap(int x, int y, Tileset t)
         {
             List<Point> points = new List<Point>();
             UpdateLight(x, y, t.tileTypes[this[x, y].tileType].lightEmission, ref points, t);

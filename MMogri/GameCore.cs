@@ -11,10 +11,10 @@ namespace MMogri.Core
     class GameCore
     {
         GameLoader loader;
-        Action<MapUpdate> updateCallback;
+        Action<ClientUpdate> updateCallback;
         //tileset, itemSet, etc
 
-        public GameCore(GameLoader loader, Action<MapUpdate> updateCallback)
+        public GameCore(GameLoader loader, Action<ClientUpdate> updateCallback)
         {
             this.loader = loader;
             this.updateCallback = updateCallback;
@@ -42,8 +42,12 @@ namespace MMogri.Core
         [LuaFunc]
         public void MoveEntity(Entity e, Guid mapId, int x, int y)
         {
-            e.x += x;
-            e.y += y;
+            if (!CheckCollision(mapId, e.x - 1, e.y))
+            {
+                e.x += x;
+                e.y += y;
+            }
+            updateCallback(new EntityUpdate(mapId, e.Id, x, y));
         }
 
         [LuaFunc]
@@ -55,7 +59,7 @@ namespace MMogri.Core
         }
 
         [LuaFunc]
-        public void TestSend (Guid mapId, int x, int y)
+        public void TestSend(Guid mapId, int x, int y)
         {
             updateCallback(new MapUpdate(mapId, x, y, 2));
         }

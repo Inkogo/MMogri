@@ -9,23 +9,30 @@ namespace MMogri.Input
 {
     class InputHandler
     {
+        bool catchKey;
         ConsoleKeyInfo? keyInf;
 
-        public void CatchInput()
+        public InputHandler()
         {
             var thread = new Thread(() =>
             {
-                bool keyHit = false;
-                while (!keyHit)
+                while (true)
                 {
-                    keyInf = System.Console.ReadKey(true);
-
-                    keyHit = keyInf != null;
+                    if (catchKey)
+                    {
+                        keyInf = System.Console.ReadKey(true);
+                        catchKey = false;
+                    }
                 }
             });
 
             thread.IsBackground = true;
             thread.Start();
+        }
+
+        public void CatchInput()
+        {
+            catchKey = true;
         }
 
         public bool GetKey(KeyCode key, KeyCode altKey = KeyCode.NoName)

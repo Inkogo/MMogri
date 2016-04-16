@@ -39,12 +39,8 @@ namespace MMogri
             mapScreen = new MapScreen(window, input);
         }
 
-        int tick = 0;
         public void ClientTick()
         {
-            System.Diagnostics.Debug.Print("Client Tick! " + inputLock+ ", " + tick);
-            tick++;
-
             if (keybinds == null || inputLock) return;
 
             input.CatchInput();
@@ -106,9 +102,9 @@ namespace MMogri
                     SaveKeybinds();
 
                     break;
-                case NetworkResponse.ResponseType.MapUpdate:
+                case NetworkResponse.ResponseType.Update:
                     inputLock = false;
-                    Console.WriteLine("Change! " + tick);
+                    Console.WriteLine("Change! " + System.DateTime.Now.ToString("mm:ss:ff"));
 
                     //mapScreen.UpdateMap();
                     break;
