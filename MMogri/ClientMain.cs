@@ -17,7 +17,7 @@ namespace MMogri
 {
     class ClientMain
     {
-        string serverName;
+        ClientInf clientInf;
         Keybind[] keybinds;
 
         GameWindow window;
@@ -28,15 +28,17 @@ namespace MMogri
 
         bool inputLock;
 
-        public ClientMain(GameWindow window, InputHandler input)
+        public ClientMain(ClientInf inf, GameWindow window, InputHandler input)
         {
-            serverName = "MyClient";          //hack!
+            clientInf = inf;
 
             this.window = window;
             this.input = input;
 
             loginScreen = new LoginScreen(window, input, this);
             mapScreen = new MapScreen(window, input);
+
+            NetworkHandler.Instance.ConnectToServer(System.Net.IPAddress.Parse(inf.ip), inf.port, this);
         }
 
         public void ClientTick()
@@ -235,7 +237,7 @@ namespace MMogri
         {
             get
             {
-                return (Path.Combine(AppDomain.CurrentDomain.BaseDirectory, serverName));
+                return (Path.Combine(AppDomain.CurrentDomain.BaseDirectory, clientInf.name));
             }
         }
 

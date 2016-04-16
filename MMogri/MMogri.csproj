@@ -80,9 +80,11 @@
     <Compile Include="CharacterClassInf.cs" />
     <Compile Include="CharacterStats.cs" />
     <Compile Include="ClientGameState.cs" />
+    <Compile Include="ClientInf.cs" />
     <Compile Include="ClientUpdate.cs" />
     <Compile Include="CmdConsole.cs" />
     <Compile Include="Color.cs" />
+    <Compile Include="FileBrowserScreen.cs" />
     <Compile Include="TestFolder\CommitTest.cs" />
     <Compile Include="Connection.cs" />
     <Compile Include="ContentFrame.cs" />

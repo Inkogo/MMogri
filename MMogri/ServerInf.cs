@@ -11,6 +11,7 @@ namespace MMogri.Core
     {
         public string name;
         public int maxPlayers;
+        public int port;
 
         public string authentificationEmail;
         public string authentificationEmailPassword;

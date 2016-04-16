@@ -47,6 +47,8 @@ namespace MMogri
 
             lua.RegisterObserved("Core", core);
             lua.Run(Path.Combine(ServerPath, "testLua.lua"));       //make this nicer!
+
+            MMogri.Network.NetworkHandler.Instance.StartServer(serverInf.port, this);
         }
 
         public void ServerTick()
