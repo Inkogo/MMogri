@@ -32,9 +32,9 @@ namespace MMogri
             quests = TryLoad<Quest>(fullPath, "Quests");
         }
 
- Dictionary<string, T> TryLoad<T>(string path, string sub) where T : new()
+        Dictionary<string, T> TryLoad<T>(string path, string sub) where T : new()
         {
-       Dictionary<string,T> t = new Dictionary<string,T>();
+            Dictionary<string, T> t = new Dictionary<string, T>();
 
             string fullPath = Path.Combine(path, sub);
             Directory.CreateDirectory(fullPath);
@@ -83,14 +83,16 @@ namespace MMogri
             return null;
         }
 
-        public void SaveMaps()
+        public bool SaveMaps()
         {
+            bool saved = false;
             foreach (string s in maps.Keys.Where(x => maps[x].isDirty))
             {
-                Debugging.Debug.Log("Saving...");
                 Save<Map>(maps[s], s);
                 maps[s].isDirty = false;
+                saved = true;
             }
+            return saved;
         }
 
         public Tileset GetTileset

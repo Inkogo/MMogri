@@ -25,11 +25,10 @@ namespace MMogri
         CmdConsole cmdHandler;
 
         Dictionary<Guid, Player> activePlayers;
-        List<ClientUpdate> clientUpdates;
+        ConcurrentStack<ClientUpdate> clientUpdates;
         int serverTick;
         int lastSave;
 
-        ConcurrentStack<ClientUpdate> clientUpdates_;
 
         public ServerMain(ServerInf serverInf, GameWindow window)
         {
@@ -38,8 +37,7 @@ namespace MMogri
             loader = new GameLoader();
             core = new GameCore(loader, AddClientUpdate);
             activePlayers = new Dictionary<Guid, Player>();
-            clientUpdates = new List<ClientUpdate>();
-            clientUpdates_ = new ConcurrentStack<ClientUpdate>();
+            clientUpdates = new ConcurrentStack<ClientUpdate>();
             cmdHandler = new CmdConsole();
 
             loader.Load(ServerPath);
@@ -53,7 +51,7 @@ namespace MMogri
 
         public void ServerTick()
         {
-            lock (clientUpdates_)
+            lock (clientUpdates)
             {
                 foreach (Guid g in activePlayers.Values.Select(x => x.mapId).Distinct().ToList())
                 {
@@ -68,7 +66,7 @@ namespace MMogri
                     }
                 }
 
-                foreach (Guid m in clientUpdates_.Select(x => x.mapId).Distinct())       //this is not thread save! netHander changes this array async! needs some sort of locking
+                foreach (Guid m in clientUpdates.Select(x => x.mapId).Distinct())       //this is not thread save! netHander changes this array async! needs some sort of locking
                 {
                     NetworkResponse p = new NetworkResponse();
                     p.type = NetworkResponse.ResponseType.Update;
@@ -87,13 +85,16 @@ namespace MMogri
                     }
                 }
                 clientUpdates.Clear();
-                clientUpdates_.Clear();
 
                 serverTick++;
                 if (serverTick - lastSave > serverInf.saveTickInterval)
                 {
-                    loader.SaveMaps();
                     lastSave = serverTick;
+
+                    if (loader.SaveMaps())
+                    {
+                        Console.WriteLine("Saving...");
+                    }
                 }
             }
         }
@@ -204,9 +205,9 @@ namespace MMogri
 
         void AddClientUpdate(ClientUpdate c)
         {
-            lock (clientUpdates_)
+            lock (clientUpdates)
             {
-                clientUpdates_.Push(c);
+                clientUpdates.Push(c);
             }
         }
 

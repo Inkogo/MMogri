@@ -48,6 +48,7 @@ namespace MMogri.Core
             {
                 foreach (Action a in ticks)
                     a();
+                System.Threading.Thread.Sleep(10);
             }
         }
     }

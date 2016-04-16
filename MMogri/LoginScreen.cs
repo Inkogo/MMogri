@@ -29,35 +29,40 @@ namespace MMogri
             Console.WriteLine("[C] Create account");
             Console.WriteLine("[R] Forgot Password");
 
-            ConsoleKeyInfo key = Console.ReadKey(true);
-            if (key.Key == ConsoleKey.J)
+            while (true)
             {
-                Console.WriteLine("Email:");
-                string email = Console.ReadLine();
-                Console.WriteLine("Password:");
-                string pword = Console.ReadLine();
+                ConsoleKeyInfo key = Console.ReadKey(true);
+                if (key.Key == ConsoleKey.J)
+                {
+                    Console.WriteLine("Email:");
+                    string email = Console.ReadLine();
+                    Console.WriteLine("Password:");
+                    string pword = Console.ReadLine();
 
-                client.RequestLoginAccount(email, pword.ToGuid());
+                    client.RequestLoginAccount(email, pword.ToGuid());
+                    break;
+                }
+                else if (key.Key == ConsoleKey.C)
+                {
+                    Console.WriteLine("Email:");
+                    string email = Console.ReadLine();
+                    Console.WriteLine("Password:");
+                    string pword = Console.ReadLine();
+
+                    client.RequestCreateAccount(email, pword.ToGuid());
+                    break;
+                }
+                else if (key.Key == ConsoleKey.R)
+                {
+                    Console.WriteLine("Email:");
+                    string email = Console.ReadLine();
+
+                    client.RequestResetPassword(email);
+                    break;
+                }
+                else
+                    Console.WriteLine("Unknown command!");
             }
-            else if (key.Key == ConsoleKey.C)
-            {
-                Console.WriteLine("Email:");
-                string email = Console.ReadLine();
-                Console.WriteLine("Password:");
-                string pword = Console.ReadLine();
-
-                client.RequestCreateAccount(email, pword.ToGuid());
-            }
-            else if (key.Key == ConsoleKey.R)
-            {
-                Console.WriteLine("Email:");
-                string email = Console.ReadLine();
-
-                client.RequestResetPassword(email);
-            }
-            else
-                Console.WriteLine("Unknown command!");
-
             window.Clear();
         }
 
@@ -78,28 +83,38 @@ namespace MMogri
             Console.WriteLine("[C] Create new player");
             Console.WriteLine("[N] Change password");
 
-            ConsoleKeyInfo key = Console.ReadKey(true);
-            int i = 0;
-            if (int.TryParse(key.KeyChar.ToString(), out i))
+            while (true)
             {
-                client.RequestSpawn(p[i - 1], account, session);
-            }
-            else if (key.Key == ConsoleKey.C)
-            {
-                Console.WriteLine("Name:");
-                string name = Console.ReadLine();
+                ConsoleKeyInfo key = Console.ReadKey(true);
+                int i = 0;
+                if (int.TryParse(key.KeyChar.ToString(), out i))
+                {
+                    client.RequestSpawn(p[i - 1], account, session);
+                    break;
+                }
+                else if (key.Key == ConsoleKey.C)
+                {
+                    Console.WriteLine("Name:");
+                    string name = Console.ReadLine();
 
-                client.RequestCreatePlayer(name, account, session);
-            }
-            else if (key.Key == ConsoleKey.N)
-            {
-                Console.WriteLine("Old Password:");
-                string oldP = Console.ReadLine();
-                Console.WriteLine("New Password:");
-                string newP = Console.ReadLine();
+                    client.RequestCreatePlayer(name, account, session);
+                    break;
+                }
+                else if (key.Key == ConsoleKey.N)
+                {
+                    Console.WriteLine("Old Password:");
+                    string oldP = Console.ReadLine();
+                    Console.WriteLine("New Password:");
+                    string newP = Console.ReadLine();
 
-                client.RequestChangePassword(oldP.ToGuid(), newP.ToGuid(), account, session);
+                    client.RequestChangePassword(oldP.ToGuid(), newP.ToGuid(), account, session);
+                    break;
+                }
+                else
+                    Console.WriteLine("Unknown command!");
             }
+
+            window.Clear();
         }
     }
 }
