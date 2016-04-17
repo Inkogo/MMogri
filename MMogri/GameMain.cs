@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using MMogri.Input;
 using MMogri.Renderer;
-using MMogri.Input;
+using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace MMogri.Core
@@ -35,6 +32,22 @@ namespace MMogri.Core
 
         public void Start()
         {
+            //Entity e = new Entity("test", 3, 3);
+            //Serialization.Serializer.Serialize<Entity>(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "test.xml"), e);
+            //Entity e = Utils.Serializer.Deserialize<Entity>(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "test.xml"));
+
+            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "test.xml");
+
+            Serialization.TestStruct t = new Serialization.TestStruct(12);
+            Serialization.Serializer.Serialize<Serialization.TestStruct>(path, t);
+
+
+            //Serialization.TestClass t = Serialization.Serializer.Deserialize<Serialization.TestClass>(path);
+
+            //Debugging.Debug.Log(e.name);
+
+            return;
+
             // i really dont like this!
             StartScreen startScreen = new StartScreen(gameWindow, input);
             LaunchMode m = (LaunchMode)startScreen.ShowScreen();

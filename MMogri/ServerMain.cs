@@ -1,17 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Concurrent;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.IO;
+﻿using MMogri.Core;
 using MMogri.Gameplay;
-using MMogri.Core;
-using MMogri.Scripting;
-using MMogri.Input;
-using MMogri.Renderer;
 using MMogri.Network;
+using MMogri.Renderer;
+using MMogri.Scripting;
 using MMogri.Security;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace MMogri
 {
@@ -41,12 +38,11 @@ namespace MMogri
             cmdHandler = new CmdConsole();
 
             loader.Load(ServerPath);
-
-            lua = new LuaHandler();
             login = new LoginHandler(ServerPath);
 
+            lua = new LuaHandler(Path.Combine(ServerPath, "testLua.lua"));
             lua.RegisterObserved("Core", core);
-            lua.Run(Path.Combine(ServerPath, "testLua.lua"));       //make this nicer!
+            //lua.Run(Path.Combine(ServerPath, "testLua.lua"));       //make this nicer!
 
             MMogri.Network.NetworkHandler.Instance.StartServer(serverInf.port, this);
         }
@@ -135,7 +131,7 @@ namespace MMogri
                     {
                         //0=email, 1=password
                         string mail = r.requestParams[0].ToLower();
-                        if (!serverInf.validateEmail || mail.IsEmailAdress() )
+                        if (!serverInf.validateEmail || mail.IsEmailAdress())
                         {
                             if (login.FindAccount(mail) == null)
                             {
@@ -177,7 +173,7 @@ namespace MMogri
                 case NetworkRequest.RequestType.PlayerInput:
                     {
                         //handle params here later!
-                        lua.CallFunc(Path.Combine(ServerPath, "testLua.lua"), r.requestAction, activePlayers[g]);
+                        lua.CallFunc(r.requestAction, new object[] { activePlayers[g] });
                     }
                     break;
                 case NetworkRequest.RequestType.ClientMessage:

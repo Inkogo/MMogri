@@ -17,6 +17,8 @@ namespace MMogri.Gameplay
         public int lvl;
         public int exp;
 
+        public string playerMode;
+
         public CharacterStats stats;
 
         public Player()

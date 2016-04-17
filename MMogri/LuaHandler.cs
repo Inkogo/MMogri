@@ -1,23 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using MMogri.Debugging;
 using NLua;
 using System.Reflection;
-using System.IO;
-using System.Text.RegularExpressions;
-using MMogri.Debugging;
 
 namespace MMogri.Scripting
 {
     class LuaHandler
     {
         Lua lua;
+        string path;
 
-        public LuaHandler()
+        public LuaHandler(string s)
         {
             lua = new Lua();
+            path = s;
+            Run();
         }
 
         public void RegisterObserved(string name, object o)
@@ -34,7 +30,7 @@ namespace MMogri.Scripting
             lua[name] = o;
         }
 
-        public void Run(string path)
+        public void Run()
         {
             try
             {
@@ -46,9 +42,8 @@ namespace MMogri.Scripting
             }
         }
 
-        public void CallFunc(string path, string func, object o)
+        public void CallFunc(string func, object[] o)
         {
-            //Run(path);
             LuaFunction f = lua[func] as LuaFunction;
             if (f != null)
             {

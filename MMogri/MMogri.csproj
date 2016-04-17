@@ -123,14 +123,20 @@
     <Compile Include="NetworkRequest.cs" />
     <Compile Include="NetworkResponse.cs" />
     <Compile Include="Player.cs" />
+    <Compile Include="PlayerMode.cs" />
     <Compile Include="Point.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Quest.cs" />
     <Compile Include="RaceInf.cs" />
     <Compile Include="RPC.cs" />
     <Compile Include="ScalingValue.cs" />
+    <Compile Include="ScriptableObject.cs" />
     <Compile Include="SendObject.cs" />
-    <Compile Include="Serializer.cs" />
+    <Compile Include="Serialization\SerializeConverter.cs" />
+    <Compile Include="Serialization\Serializer.cs" />
+    <Compile Include="Serialization\SerializeReader.cs" />
+    <Compile Include="Serialization\SerializeWriter.cs" />
+    <Compile Include="Serialization\TestClass.cs" />
     <Compile Include="Server.cs" />
     <Compile Include="ServerInf.cs" />
     <Compile Include="ServerMain.cs" />
@@ -150,9 +156,7 @@
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="TestFolder\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>

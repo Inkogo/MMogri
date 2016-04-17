@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MMogri.Gameplay;
+﻿using MMogri.Gameplay;
 using MMogri.Scripting;
+using System;
+using System.Text;
 
 namespace MMogri.Core
 {
@@ -12,7 +9,6 @@ namespace MMogri.Core
     {
         GameLoader loader;
         Action<ClientUpdate> updateCallback;
-        //tileset, itemSet, etc
 
         public GameCore(GameLoader loader, Action<ClientUpdate> updateCallback)
         {
@@ -59,9 +55,60 @@ namespace MMogri.Core
         }
 
         [LuaFunc]
-        public void TestSend(Guid mapId, int x, int y)
+        public bool ReadScriptableBool(ScriptableObject o, string s)
         {
-            updateCallback(new MapUpdate(mapId, x, y, 2));
+            if (o.data.ContainsKey(s))
+                return BitConverter.ToBoolean(o.data[s], 0);
+            return false;
+        }
+
+        [LuaFunc]
+        public void WriteScriptableBool(ScriptableObject o, string s, bool b)
+        {
+            if (o.data.ContainsKey(s))
+                o.data[s] = BitConverter.GetBytes(b);
+            else
+                o.data.Add(s, BitConverter.GetBytes(b));
+        }
+
+        [LuaFunc]
+        public string ReadScriptableString(ScriptableObject o, string s)
+        {
+            if (o.data.ContainsKey(s))
+                return BitConverter.ToString(o.data[s], 0);
+            return "";
+        }
+
+        [LuaFunc]
+        public void WriteScriptableString(ScriptableObject o, string s, string v)
+        {
+            if (o.data.ContainsKey(s))
+                o.data[s] = Encoding.ASCII.GetBytes(v);
+            else
+                o.data.Add(s, Encoding.ASCII.GetBytes(v));
+        }
+
+        [LuaFunc]
+        public int ReadScriptableInt(ScriptableObject o, string s)
+        {
+            if (o.data.ContainsKey(s))
+                return BitConverter.ToInt32(o.data[s], 0);
+            return 0;
+        }
+
+        [LuaFunc]
+        public void WriteScriptableInt(ScriptableObject o, string s, int i)
+        {
+            if (o.data.ContainsKey(s))
+                o.data[s] = BitConverter.GetBytes(i);
+            else
+                o.data.Add(s, BitConverter.GetBytes(i));
+        }
+
+        [LuaFunc]
+        public void InteractWithEnity(Player p, Entity e)
+        {
+            e.OnInteract(p);
         }
     }
 }
