@@ -95,14 +95,14 @@
     <Compile Include="Entity.cs" />
     <Compile Include="EntityUpdate.cs" />
     <Compile Include="Equipment.cs" />
-    <Compile Include="Renderer\IRenderable.cs" />
     <Compile Include="LuaScript.cs" />
+    <Compile Include="GameWindow.cs" />
+    <Compile Include="IRenderable.cs" />
     <Compile Include="Utils\FileUtils.cs" />
     <Compile Include="GameCore.cs" />
     <Compile Include="GameLoader.cs" />
     <Compile Include="GameMain.cs" />
     <Compile Include="GameTime.cs" />
-    <Compile Include="Renderer\GameWindow.cs" />
     <Compile Include="Cmd.cs" />
     <Compile Include="ICompressable.cs" />
     <Compile Include="InputHandler.cs" />

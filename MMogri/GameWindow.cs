@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Threading;
 
 namespace MMogri.Renderer
@@ -47,7 +43,7 @@ namespace MMogri.Renderer
             Console.WriteLine(s);
         }
 
-        public void SetColor (Color c)
+        public void SetColor(Color c)
         {
             Console.ForegroundColor = c.ToConsoleColor();
         }
@@ -76,26 +72,26 @@ namespace MMogri.Renderer
             }
         }
 
-        public void SetEditMode (bool b)
+        public void SetEditMode(bool b)
         {
             Console.CursorVisible = b;
         }
 
-        public void Clear ()
+        public void Clear()
         {
             Console.Clear();
         }
 
-        public void Clear (int x, int y, int sx, int sy, char c = ' ')
+        public void Clear(int x, int y, int sx, int sy, char c = ' ')
         {
-            for(int i= y;i< y + sy;i++)
+            for (int i = y; i < y + sy; i++)
             {
                 Console.SetCursorPosition(x, i);
                 Console.WriteLine(new string(c, sx));
             }
         }
 
-        public void Wait (float f)
+        public void Wait(float f)
         {
             Thread.Sleep((int)(f * 1000));
         }
