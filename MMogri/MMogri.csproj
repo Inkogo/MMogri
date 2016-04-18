@@ -95,7 +95,7 @@
     <Compile Include="Entity.cs" />
     <Compile Include="EntityUpdate.cs" />
     <Compile Include="Equipment.cs" />
-    <Compile Include="FileUtils.cs" />
+    <Compile Include="Utils\FileUtils.cs" />
     <Compile Include="GameCore.cs" />
     <Compile Include="GameLoader.cs" />
     <Compile Include="GameMain.cs" />
