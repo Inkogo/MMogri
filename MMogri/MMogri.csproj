@@ -102,7 +102,7 @@
     <Compile Include="GameLoader.cs" />
     <Compile Include="GameMain.cs" />
     <Compile Include="GameTime.cs" />
-    <Compile Include="GameWindow.cs" />
+    <Compile Include="Renderer\GameWindow.cs" />
     <Compile Include="Cmd.cs" />
     <Compile Include="ICompressable.cs" />
     <Compile Include="InputHandler.cs" />
@@ -158,9 +158,7 @@
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Renderer\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>
