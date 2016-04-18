@@ -1,6 +1,7 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
 using System.Text;
 
 namespace MMogri.Serialization
@@ -25,6 +26,40 @@ namespace MMogri.Serialization
             stringB = new StringBuilder();
         }
 
+        public void Serialize<T>(string path, T t) where T : new()
+        {
+            using (StreamWriter writer = new StreamWriter(path))
+            {
+                SerializeObject(t);
+
+                writer.Write(ToString());
+            }
+        }
+
+
+        void SerializeObject(Object t)
+        {
+            WriteStart();
+
+            MemberInfo[] m = t.GetType().GetMembers(BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
+
+            foreach (MemberInfo i in m)
+            {
+                if (i.GetCustomAttribute<System.NonSerializedAttribute>() != null) continue;
+
+                object value = null;
+                if (i.MemberType == MemberTypes.Field)
+                {
+                    value = ((FieldInfo)i).GetValue(t);
+                }
+                else continue;
+
+                WriteEntry(i.Name, value);
+            }
+
+            WriteEnd();
+        }
+
         public void WriteStart()
         {
             Append("{\n");
@@ -34,7 +69,13 @@ namespace MMogri.Serialization
         public void WriteEnd()
         {
             indent--;
+            WriteIndent();
             Append("}");
+        }
+
+        public void WriteIndent ()
+        {
+            for (int i = 0; i < indent; i++) stringB.Append("  ");
         }
 
         public void Write(object e)
@@ -44,8 +85,7 @@ namespace MMogri.Serialization
 
         public void WriteEntry(string s, object e)
         {
-            for (int i = 0; i < indent; i++) stringB.Append("  ");
-
+            WriteIndent();
             Append(s + "=");
             SerializeValue(e);
             Append(";\n");
@@ -73,6 +113,8 @@ namespace MMogri.Serialization
                     return;
                 }
             }
+            //no default serializer found! serialize it directly!
+            SerializeObject(o);
         }
 
         public override string ToString()

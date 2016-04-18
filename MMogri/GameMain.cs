@@ -38,13 +38,19 @@ namespace MMogri.Core
 
             string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "test.xml");
 
-            Serialization.TestStruct t = new Serialization.TestStruct(12);
-            Serialization.Serializer.Serialize<Serialization.TestStruct>(path, t);
-
+            Serialization.TestClass t = new Serialization.TestClass(
+                4,
+                "bam",
+                new List<string>() { "aaah", "beeeh", "ceeeeh" },
+                3,
+                new Dictionary<string, int>() { { "a", 1 }, { "b", 2 } },
+                new Serialization.TestStruct(8)
+                );
+            Serialization.SerializeWriter w = new Serialization.SerializeWriter();
+            w.Serialize<Serialization.TestClass>(path, t);
 
             //Serialization.TestClass t = Serialization.Serializer.Deserialize<Serialization.TestClass>(path);
-
-            //Debugging.Debug.Log(e.name);
+            //Debugging.Debug.Log(t);
 
             return;
 

@@ -9,17 +9,24 @@ namespace MMogri.Serialization
     //this is purely to test out writing stuff to files! Will be deleted later!
     public class TestClass
     {
-        public int i = 7;
-        public string s = "test";
-        public List<string> st = new List<string>() {
-             "abc", "asd"
-        };
-        public byte b = 8;
-        public Dictionary<string, int> dict = new Dictionary<string, int>() {
-            { "heyo", 2},
-            { "Yo!", 5},
-            { "Test", -5 },
-        };
+        public int i;
+        public string s;
+        public List<string> st;
+        public byte b;
+        public Dictionary<string, int> dict;
+        public TestStruct rct;
+
+        public TestClass(int i, string s, List<string> st, byte b, Dictionary<string, int> dict, TestStruct rct)
+        {
+            this.i = i;
+            this.s = s;
+            this.st = st;
+            this.b = b;
+            this.dict = dict;
+            this.rct = rct;
+        }
+
+        public TestClass () { }
     }
 
     public struct TestStruct

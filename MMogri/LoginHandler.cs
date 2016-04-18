@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.IO;
-using System.Text;
-using System.Threading.Tasks;
-using MMogri.Gameplay;
+﻿using MMogri.Gameplay;
 using MMogri.Utils;
+using System;
+using System.IO;
+using System.Linq;
 
 namespace MMogri.Security
 {

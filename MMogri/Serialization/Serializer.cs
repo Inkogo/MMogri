@@ -4,6 +4,7 @@ using System.Text;
 
 namespace MMogri.Serialization
 {
+    //Depricated! Use SerializeWriter / Reader instead! Remove this later once Deserializer works!
     public class Serializer
     {
         static string ReadNext(StreamReader reader, char delimeter)
@@ -15,7 +16,7 @@ namespace MMogri.Serialization
                 char c = (char)reader.Read();
 
                 if (outCase != null && c == (char)outCase) { outCase = null; continue; }
-                else if(outCase != null && c !=(char)outCase) { }
+                else if (outCase != null && c != (char)outCase) { }
                 else if (c == '"') { outCase = '"'; continue; }
                 else if (c == '{') { outCase = '}'; continue; }
                 else if (c == '\n' || c == '\r') { continue; }
@@ -50,7 +51,6 @@ namespace MMogri.Serialization
                     else continue;
 
                     w.WriteEntry(i.Name, value);
-                    //writer.WriteLine(i.Name + "=" + (value != null ? value : "NULL") + ";");
                 }
                 writer.Write(w.ToString());
             }
@@ -61,7 +61,7 @@ namespace MMogri.Serialization
             using (StreamReader reader = new StreamReader(path))
             {
                 object boxed = new T();
-                SerializeReader r = new SerializeReader();
+                SerializeReader r = new SerializeReader(reader.ReadToEnd());
 
                 while (reader.Peek() >= 0)
                 {
@@ -81,7 +81,8 @@ namespace MMogri.Serialization
 
                         if (m.MemberType == MemberTypes.Field)
                         {
-                            r.ReadEntry(value, ((FieldInfo)m).FieldType);
+                            object o = r.DeserializeString(value, ((FieldInfo)m).FieldType);
+                            ((FieldInfo)m).SetValue(boxed, o);
                         }
 
                         //MemberInfo m = typeof(T).GetMember(member, BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy)[0];

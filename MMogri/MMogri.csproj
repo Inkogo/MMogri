@@ -132,7 +132,8 @@
     <Compile Include="ScalingValue.cs" />
     <Compile Include="ScriptableObject.cs" />
     <Compile Include="SendObject.cs" />
-    <Compile Include="Serialization\SerializeConverter.cs" />
+    <Compile Include="Serialization\DeserializeConverters.cs" />
+    <Compile Include="Serialization\SerializeConverters.cs" />
     <Compile Include="Serialization\Serializer.cs" />
     <Compile Include="Serialization\SerializeReader.cs" />
     <Compile Include="Serialization\SerializeWriter.cs" />
