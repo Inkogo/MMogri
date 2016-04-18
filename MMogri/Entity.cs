@@ -6,7 +6,7 @@ using System;
 namespace MMogri
 {
     [System.Serializable]
-    public class Entity : ScriptableObject
+    public class Entity : ScriptableObject, IRenderable
     {
         public Guid Id;
         public string name;
@@ -14,8 +14,8 @@ namespace MMogri
         public int x;
         public int y;
 
-        public string OnTickCallback;
-        public string OnInteractCallback;
+        public string onTickCallback;
+        public string onInteractCallback;
 
         public Entity() : this("Default", 0, 0)
         { }
@@ -30,12 +30,22 @@ namespace MMogri
 
         public void OnInteract(Player p)
         {
-            CallLuaCallback(OnInteractCallback, p);
+            CallLuaCallback(onInteractCallback, p);
+        }
+
+        public char GetTag(Tile t)
+        {
+            return 'E';
+        }
+
+        public Color GetColor(Tile t)
+        {
+            return Color.White;
         }
 
         public void OnTick()
         {
-            CallLuaCallback(OnTickCallback, null);
+            CallLuaCallback(onTickCallback, null);
         }
 
         virtual public char Tag

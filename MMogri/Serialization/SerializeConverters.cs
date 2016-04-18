@@ -32,7 +32,7 @@ namespace MMogri.Serialization
 
                 for (int i = 0; i < list.Count; i++)
                 {
-                    writer.WriteEntry(i.ToString(), list[i]);
+                    writer.WriteEntry("Value_" + i.ToString(), list[i]);
                 }
                 writer.WriteEnd();
             }

@@ -104,6 +104,7 @@ namespace MMogri.Serialization
                 return;
             }
 
+            //look for converter
             foreach (Type t in converters.Keys)
             {
                 Type nt = o.GetType();
@@ -113,7 +114,7 @@ namespace MMogri.Serialization
                     return;
                 }
             }
-            //no default serializer found! serialize it directly!
+            //no converter found! serialize it directly!
             SerializeObject(o);
         }
 

@@ -56,52 +56,52 @@ namespace MMogri.Serialization
             }
         }
 
-        public static T Deserialize<T>(string path) where T : new()
-        {
-            using (StreamReader reader = new StreamReader(path))
-            {
-                object boxed = new T();
-                SerializeReader r = new SerializeReader(reader.ReadToEnd());
+        //public static T Deserialize<T>(string path) where T : new()
+        //{
+        //    using (StreamReader reader = new StreamReader(path))
+        //    {
+        //        object boxed = new T();
+        //        SerializeReader r = new SerializeReader(reader.ReadToEnd());
 
-                while (reader.Peek() >= 0)
-                {
-                    string s = ReadNext(reader, ';');
-                    if (s.Length == 0) break;
+        //        while (reader.Peek() >= 0)
+        //        {
+        //            string s = ReadNext(reader, ';');
+        //            if (s.Length == 0) break;
 
-                    if (s[0] == '-') continue;
+        //            if (s[0] == '-') continue;
 
-                    int ind = s.IndexOf('=');
-                    if (ind >= 0)
-                    {
-                        string member = s.Substring(0, ind);
-                        string value = s.Substring(ind + 1, s.Length - ind - 1);
+        //            int ind = s.IndexOf('=');
+        //            if (ind >= 0)
+        //            {
+        //                string member = s.Substring(0, ind);
+        //                string value = s.Substring(ind + 1, s.Length - ind - 1);
 
-                        MemberInfo m = typeof(T).GetMember(member, BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy)[0];
-                        if (m.GetCustomAttribute<System.NonSerializedAttribute>() != null) continue;
+        //                MemberInfo m = typeof(T).GetMember(member, BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy)[0];
+        //                if (m.GetCustomAttribute<System.NonSerializedAttribute>() != null) continue;
 
-                        if (m.MemberType == MemberTypes.Field)
-                        {
-                            object o = r.DeserializeString(value, ((FieldInfo)m).FieldType);
-                            ((FieldInfo)m).SetValue(boxed, o);
-                        }
+        //                if (m.MemberType == MemberTypes.Field)
+        //                {
+        //                    object o = r.DeserializeString(value, ((FieldInfo)m).FieldType);
+        //                    ((FieldInfo)m).SetValue(boxed, o);
+        //                }
 
-                        //MemberInfo m = typeof(T).GetMember(member, BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy)[0];
-                        //if (m.GetCustomAttribute<System.NonSerializedAttribute>() != null) continue;
+        //                //MemberInfo m = typeof(T).GetMember(member, BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy)[0];
+        //                //if (m.GetCustomAttribute<System.NonSerializedAttribute>() != null) continue;
 
-                        //if (m.MemberType == MemberTypes.Field)
-                        //{
-                        //((FieldInfo)m).SetValue(boxed, Convert(value, ((FieldInfo)m).FieldType));
-                        //}
-                        //else if (m.MemberType == MemberTypes.Property)
-                        //{
-                        //    if (((PropertyInfo)m).SetMethod != null)
-                        //        ((PropertyInfo)m).SetValue(boxed, Convert(value, ((PropertyInfo)m).PropertyType));
-                        //}
-                    }
-                }
+        //                //if (m.MemberType == MemberTypes.Field)
+        //                //{
+        //                //((FieldInfo)m).SetValue(boxed, Convert(value, ((FieldInfo)m).FieldType));
+        //                //}
+        //                //else if (m.MemberType == MemberTypes.Property)
+        //                //{
+        //                //    if (((PropertyInfo)m).SetMethod != null)
+        //                //        ((PropertyInfo)m).SetValue(boxed, Convert(value, ((PropertyInfo)m).PropertyType));
+        //                //}
+        //            }
+        //        }
 
-                return (T)boxed;
-            }
-        }
+        //        return (T)boxed;
+        //    }
+        //}
     }
 }

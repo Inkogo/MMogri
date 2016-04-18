@@ -1,53 +1,96 @@
 ﻿using MMogri.Debugging;
 using NLua;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace MMogri.Scripting
 {
     class LuaHandler
     {
-        Lua lua;
-        string path;
+        Dictionary<string, Lua> lua;
+        Dictionary<string, object> globalClasses;
 
-        public LuaHandler(string s)
+        static LuaHandler _instance;
+
+        public static LuaHandler Instance
         {
-            lua = new Lua();
-            path = s;
-            Run();
+            get
+            {
+                if (_instance == null)
+                    _instance = new LuaHandler();
+                return _instance;
+            }
         }
 
-        public void RegisterObserved(string name, object o)
+        public LuaHandler()
         {
+            lua = new Dictionary<string, Lua>();
+            globalClasses = new Dictionary<string, object>();
+        }
+
+        public void RegisterGlobalClass(string name, object o)
+        {
+            globalClasses.Add(name, o);
+            foreach (string s in lua.Keys)
+                RegisterClass(s, name, o);
+        }
+
+        public void RegisterClass(string path, string name, object o)
+        {
+            Lua l = lua[path];
             MethodInfo[] m = o.GetType().GetMethods(BindingFlags.Instance | BindingFlags.Public);
             foreach (MethodInfo i in m)
             {
                 LuaFunc f = i.GetCustomAttribute<LuaFunc>();
                 if (f != null)
                 {
-                    lua.RegisterFunction(name + "_" + i.Name, o, i);
+                    l.RegisterFunction(name + "_" + i.Name, o, i);
                 }
             }
-            lua[name] = o;
+            l[name] = o;
         }
 
-        public void Run()
+        public void CreateLua(string path)
+        {
+            if (lua.ContainsKey(path)) return;
+
+            Lua l = new Lua();
+            InitLua(l, path);
+            foreach (string s in globalClasses.Keys)
+            {
+                RegisterClass(s, s, globalClasses[s]);
+            }
+
+            lua.Add(path, l);
+        }
+
+        public object[] CallFunc(string n, string func, object[] o)
+        {
+            LuaFunction f = lua[n][func] as LuaFunction;
+            if (f != null)
+            {
+                try
+                {
+                    return f.Call(o);
+                }
+                catch (NLua.Exceptions.LuaScriptException e)
+                {
+                    Debug.Log(e.Message);
+                }
+            }
+            return null;
+        }
+
+
+        void InitLua(Lua l, string path)
         {
             try
             {
-                lua.DoFile(path);
+                l.DoFile(path);
             }
             catch (NLua.Exceptions.LuaScriptException e)
             {
                 Debug.Log(e.Message);
-            }
-        }
-
-        public void CallFunc(string func, object[] o)
-        {
-            LuaFunction f = lua[func] as LuaFunction;
-            if (f != null)
-            {
-                f.Call(o);
             }
         }
     }

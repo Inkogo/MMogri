@@ -18,7 +18,7 @@ namespace MMogri.Security
                 new SQLiteWrapper.SqlItem ("Status", SQLiteWrapper.SQLiteType.TEXT, typeof(Account).GetField("status"), false, new EnumToStringConverter<Account.AccountStatus>() ),
                 new SQLiteWrapper.SqlItem ("Email", SQLiteWrapper.SQLiteType.TEXT, typeof(Account).GetField("email") ),
                 new SQLiteWrapper.SqlItem ("Password", SQLiteWrapper.SQLiteType.TEXT, typeof(Account).GetField("password"), false, new GuidToStringConverter() ),
-                new SQLiteWrapper.SqlItem ("SessionId", SQLiteWrapper.SQLiteType.TEXT, typeof(Account).GetField("sessionId"), false, new GuidToStringConverter() ),
+                new SQLiteWrapper.SqlItem ("SessionToken", SQLiteWrapper.SQLiteType.TEXT, typeof(Account).GetField("sessionToken") ),
                 new SQLiteWrapper.SqlItem ("LastLogin", SQLiteWrapper.SQLiteType.TEXT, typeof(Account).GetField("lastLogin"), false, new DateTimeToStringConverter() ),
                 new SQLiteWrapper.SqlItem ("CreatedAt", SQLiteWrapper.SQLiteType.TEXT, typeof(Account).GetField("createdAt"), false, new DateTimeToStringConverter() ),
             }));
@@ -32,6 +32,7 @@ namespace MMogri.Security
                 new SQLiteWrapper.SqlItem("PosY", SQLiteWrapper.SQLiteType.INTEGER, typeof(Player).GetField("y") ),
                 new SQLiteWrapper.SqlItem("Lvl", SQLiteWrapper.SQLiteType.INTEGER, typeof(Player).GetField("lvl") ),
                 new SQLiteWrapper.SqlItem("Exp", SQLiteWrapper.SQLiteType.INTEGER, typeof(Player).GetField("exp") ),
+                new SQLiteWrapper.SqlItem("PlayerState", SQLiteWrapper.SQLiteType.TEXT, typeof(Player).GetField("playerState") ),
                 new SQLiteWrapper.SqlItem("Stats", SQLiteWrapper.SQLiteType.BLOB, typeof(Player).GetField("stats"), false, new ICompressableToBytesConverter<CharacterStats>() ),
             }));
         }
@@ -91,22 +92,25 @@ namespace MMogri.Security
             playerLoader.UpdateItem(p, "Where Id = '" + p.Id + "'");
         }
 
-        public Guid GenSessionId(Guid AccountId)
+        public string GenSessionToken(Guid AccountId)
         {
-            Guid s = Guid.NewGuid();
+            byte[] time = BitConverter.GetBytes(DateTime.UtcNow.ToBinary());
+            byte[] key = Guid.NewGuid().ToByteArray();
+            byte[] id = BitConverter.GetBytes(AccountId.GetHashCode());
+            string token = Convert.ToBase64String(key.Concat(time).Concat(id).ToArray());
 
             Account a = accountLoader.GetItems("Where Id = '" + AccountId + "'").FirstOrDefault();
-            a.sessionId = s;
+            a.sessionToken = token;
             a.lastLogin = System.DateTime.Now;
 
             accountLoader.UpdateItem(a, "Where Id = '" + a.Id + "'");
-            return s;
+            return token;
         }
 
-        public bool ValidateSessionId(Guid AccountId, Guid SessionId)
+        public bool ValidateSessionId(Guid AccountId, string SessionId)
         {
             Account a = accountLoader.GetItems("Where Id = '" + AccountId + "'").FirstOrDefault();
-            return a.sessionId.Equals(SessionId) && (a.lastLogin - DateTime.Now).Seconds < 150;     //150 is 1.5 mins timeout
+            return a.sessionToken.Equals(SessionId) && (a.lastLogin - DateTime.Now).Seconds < 150;     //150 is 1.5 mins timeout
         }
 
         public void ResetPassword(string targetEmail, string ownerEmail, string ownerPassword)

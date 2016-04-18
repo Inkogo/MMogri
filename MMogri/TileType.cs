@@ -1,89 +1,59 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MMogri.Renderer;
-using System.IO;
+﻿using MMogri.Renderer;
+using MMogri.Scripting;
 
 namespace MMogri
 {
     [System.Serializable]
-    public struct TileType
+    public class TileType : ScriptableObject, IRenderable
     {
-        public byte id;
+        public byte index;
         public string name;
 
-        public char tagLit;
-        public Color tagColorLit;
+        public char tag;
+        public Color color;
 
-        public char tagDark;
-        public Color tagColorDark;
+        public byte lightEmission;
 
         public bool solid;
         public bool translucent;
-        public byte lightEmission;
+        public bool flameable;
 
-        public TileType(byte id, string name, char tagLit, Color tagColorLit, char tagDark, Color tagColorDark, bool solid, bool translucent, byte lightEmission)
+        public string getTagCallback;
+        public string getColorCallback;
+
+        public TileType () { }
+
+        public TileType(byte id, string name, char tag, Color color, bool solid, bool translucent, byte lightEmission)
         {
-            this.id = id;
+            this.index = id;
             this.name = name;
 
-            this.tagLit = tagLit;
-            this.tagColorLit = tagColorLit;
-
-            this.tagDark = tagDark;
-            this.tagColorDark = tagColorDark;
+            this.tag = tag;
+            this.color = color;
 
             this.solid = solid;
             this.translucent = translucent;
             this.lightEmission = lightEmission;
         }
 
-        public Color GetColor(int lightLvl)
+        public char GetTag(Tile t)
         {
-            if (lightLvl <= 8) return tagColorDark;
-            else return tagColorLit;
+            object[] o = CallLuaCallback(getTagCallback, new object[] { t });
+            if (o != null && o.Length == 1)
+            {
+                return (char)o[0];
+            }
+            return tag;
         }
 
-        public char GetTag (int lightLvl)
+        public Color GetColor(Tile t)
         {
-            if (lightLvl <= 2) return ' ';
-            if (lightLvl <= 8) return tagDark;
-            else return tagLit;
+            object[] o = CallLuaCallback(getColorCallback, new object[] { t });
+            if (o != null && o.Length == 1)
+            {
+                return (Renderer.Color)o[0];
+            }
+            return color;
         }
-
-        //public void WriteBytes(BinaryWriter w)
-        //{
-        //    w.Write(id);
-        //    w.Write(name);
-
-        //    w.Write(tagLit);
-        //    w.Write((int)tagColorLit);
-        //    w.Write(tagDark);
-        //    w.Write((int)tagColorDark);
-
-        //    w.Write(solid);
-        //    w.Write(translucent);
-        //    w.Write(lightEmission);
-        //}
-
-        //public static TileType FromBytes(BinaryReader r)
-        //{
-        //    TileType t = new TileType(
-        //        r.ReadByte(),
-        //        r.ReadString(),
-
-        //        r.ReadChar(),
-        //        (Color)r.ReadInt32(),
-        //        r.ReadChar(),
-        //        (Color)r.ReadInt32(),
-
-        //        r.ReadBoolean(),
-        //        r.ReadBoolean(),
-        //        r.ReadByte()
-        //        );
-        //    return t;
-        //}
     }
 }

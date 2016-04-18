@@ -32,24 +32,23 @@ namespace MMogri.Core
 
         public void Start()
         {
-            //Entity e = new Entity("test", 3, 3);
-            //Serialization.Serializer.Serialize<Entity>(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "test.xml"), e);
-            //Entity e = Utils.Serializer.Deserialize<Entity>(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "test.xml"));
+            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "test.mog");
 
-            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "test.xml");
+            //Serialize
+            //Serialization.TestClass t = new Serialization.TestClass(
+            //    4,
+            //    "bam",
+            //    new List<string>() { "aaah", "beeeh", "ceeeeh" },
+            //    3,
+            //    new Dictionary<string, int>() { { "a", 1 }, { "b", 2 } },
+            //    new Serialization.TestStruct(8)
+            //    );
+            //Serialization.SerializeWriter w = new Serialization.SerializeWriter();
+            //w.Serialize<Serialization.TestClass>(path, t);
 
-            Serialization.TestClass t = new Serialization.TestClass(
-                4,
-                "bam",
-                new List<string>() { "aaah", "beeeh", "ceeeeh" },
-                3,
-                new Dictionary<string, int>() { { "a", 1 }, { "b", 2 } },
-                new Serialization.TestStruct(8)
-                );
-            Serialization.SerializeWriter w = new Serialization.SerializeWriter();
-            w.Serialize<Serialization.TestClass>(path, t);
-
-            //Serialization.TestClass t = Serialization.Serializer.Deserialize<Serialization.TestClass>(path);
+            //Deserialize
+            //Serialization.SerializeReader r = new Serialization.SerializeReader();
+            //Serialization.TestClass2 t = r.Deserialize<Serialization.TestClass2>(path);
             //Debugging.Debug.Log(t);
 
             return;
@@ -97,8 +96,7 @@ namespace MMogri.Core
 
             ServerInf inf = Utils.FileUtils.LoadFromXml<ServerInf>(serverPath);
             ServerMain server = new ServerMain(inf, gameWindow);
-            //MMogri.Network.NetworkHandler.Instance.StartServer(25565, server);
-            //ticks.Add(server.ServerTick);
+
             gameWindow.Clear();
 
             return server;

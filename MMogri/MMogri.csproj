@@ -95,6 +95,8 @@
     <Compile Include="Entity.cs" />
     <Compile Include="EntityUpdate.cs" />
     <Compile Include="Equipment.cs" />
+    <Compile Include="IRenderable.cs" />
+    <Compile Include="LuaScript.cs" />
     <Compile Include="Utils\FileUtils.cs" />
     <Compile Include="GameCore.cs" />
     <Compile Include="GameLoader.cs" />
@@ -123,7 +125,7 @@
     <Compile Include="NetworkRequest.cs" />
     <Compile Include="NetworkResponse.cs" />
     <Compile Include="Player.cs" />
-    <Compile Include="PlayerMode.cs" />
+    <Compile Include="PlayerState.cs" />
     <Compile Include="Point.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Quest.cs" />
@@ -151,13 +153,14 @@
     <Compile Include="TilesetEditor.cs" />
     <Compile Include="TileType.cs" />
     <Compile Include="UserPreferences.cs" />
-    <Compile Include="ValueConverter.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Renderer\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>

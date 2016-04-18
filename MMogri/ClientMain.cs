@@ -1,17 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MMogri.Gameplay;
-using MMogri.Core;
-using MMogri.Scripting;
-using MMogri.Input;
-using System.IO;
-using MMogri.Utils;
-using MMogri.Renderer;
+﻿using MMogri.Input;
 using MMogri.Network;
-using System.Net;
+using MMogri.Renderer;
+using MMogri.Utils;
+using System;
+using System.IO;
 
 namespace MMogri
 {

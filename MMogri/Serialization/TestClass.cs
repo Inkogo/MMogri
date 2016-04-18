@@ -29,6 +29,20 @@ namespace MMogri.Serialization
         public TestClass () { }
     }
 
+    public class TestClass2
+    {
+        public int i;
+        public string s;
+        
+        public TestClass2(int i, string s)
+        {
+            this.i = i;
+            this.s = s;
+        }
+
+        public TestClass2() { }
+    }
+
     public struct TestStruct
     {
         public int i;

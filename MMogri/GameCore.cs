@@ -19,7 +19,7 @@ namespace MMogri.Core
         [LuaFunc]
         public TileType CheckTileType(Guid mapId, int x, int y)
         {
-            return loader.GetTileset.tileTypes[loader.GetMap(mapId)[x, y].tileType];
+            return loader.GetTileset.GetTileType(loader.GetMap(mapId)[x, y].tileTypeId);
         }
 
         [LuaFunc]

@@ -1,23 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using MMogri.Scripting;
 
 namespace MMogri
 {
     [System.Serializable]
-    public struct Tile
+    public class Tile : ScriptableObject
     {
-        public int tileType;
+        public int tileTypeId;
         public int itemType;
 
         public int lightLvl;
         public bool covered;
 
+        [System.NonSerialized]
+        public char bakedTag;
+        [System.NonSerialized]
+        public short bakedColor;
+
+        public string onTickCallback;
+        public string onEnterCallback;
+        public string onExitCallback;
+
         public Tile(int t, int i, int l, bool c)
         {
-            tileType = t;
+            tileTypeId = t;
             itemType = i;
             lightLvl = l;
             covered = c;
@@ -26,9 +31,28 @@ namespace MMogri
 
         public void SetTileType(int i)
         {
-            tileType = i;
+            tileTypeId = i;
         }
 
-        public void OnTick() { }
+        public void UpdateBake(char t, MMogri.Renderer.Color c)
+        {
+            bakedTag = t;
+            bakedColor = (short)c;
+        }
+
+        public void OnTick()
+        {
+            CallLuaCallback(onTickCallback, null);
+        }
+
+        public void OnEnter(Entity e)
+        {
+            CallLuaCallback(onEnterCallback, new object[] { e });
+        }
+
+        public void OnExit(Entity e)
+        {
+            CallLuaCallback(onExitCallback, new object[] { e });
+        }
     }
 }

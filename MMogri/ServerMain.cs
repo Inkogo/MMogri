@@ -26,7 +26,6 @@ namespace MMogri
         int serverTick;
         int lastSave;
 
-
         public ServerMain(ServerInf serverInf, GameWindow window)
         {
             this.serverInf = serverInf;
@@ -40,8 +39,8 @@ namespace MMogri
             loader.Load(ServerPath);
             login = new LoginHandler(ServerPath);
 
-            lua = new LuaHandler(Path.Combine(ServerPath, "testLua.lua"));
-            lua.RegisterObserved("Core", core);
+            lua = new LuaHandler();
+            lua.RegisterGlobalClass("Core", core);
             //lua.Run(Path.Combine(ServerPath, "testLua.lua"));       //make this nicer!
 
             MMogri.Network.NetworkHandler.Instance.StartServer(serverInf.port, this);
@@ -112,7 +111,7 @@ namespace MMogri
                     {
                         //0=oldPassword, 1=newPassword, 2=account, 3=sessionID
                         Account a = login.FindAccount(new Guid(r.requestParams[2]));
-                        if (a.ComparePassword(new Guid(r.requestParams[0])) && login.ValidateSessionId(new Guid(r.requestParams[2]), new Guid(r.requestParams[3])))
+                        if (a.ComparePassword(new Guid(r.requestParams[0])) && login.ValidateSessionId(new Guid(r.requestParams[2]), r.requestParams[3]))
                         {
                             login.ChangePassword(a.email, new Guid(r.requestParams[0]), new Guid(r.requestParams[1]));
                             RespondPasswordChanged(true, g);
@@ -143,7 +142,7 @@ namespace MMogri
                 case NetworkRequest.RequestType.CreatePlayer:
                     //0=playerName, 1=account, 2=sessionID
                     {
-                        if (login.ValidateSessionId(new Guid(r.requestParams[1]), new Guid(r.requestParams[2])))
+                        if (login.ValidateSessionId(new Guid(r.requestParams[1]), r.requestParams[2]))
                         {
                             Player pl = login.CreatePlayer(r.requestParams[0], new Guid(r.requestParams[1]), loader.GetMap("Test Map").Id, 3, 3);
                             RegisterPlayer(pl, g);
@@ -155,7 +154,7 @@ namespace MMogri
                     {
                         //0=playerName, 1=account, 2=sessionID
                         Player pp = login.FindPlayer(new Guid(r.requestParams[1]), r.requestParams[0]);
-                        if (login.ValidateSessionId(new Guid(r.requestParams[1]), new Guid(r.requestParams[2])))
+                        if (login.ValidateSessionId(new Guid(r.requestParams[1]), r.requestParams[2]))
                         {
                             RegisterPlayer(pp, g);
                             RespondPlayerJoined(true, g);
@@ -172,8 +171,8 @@ namespace MMogri
                     break;
                 case NetworkRequest.RequestType.PlayerInput:
                     {
-                        //handle params here later!
-                        lua.CallFunc(r.requestAction, new object[] { activePlayers[g] });
+                        //0-n=stringParams
+                        loader.GetPlayerState(activePlayers[g].playerState).OnAction(r.requestAction, new object[] { activePlayers[g] }.Concat(r.requestParams));
                     }
                     break;
                 case NetworkRequest.RequestType.ClientMessage:
@@ -242,7 +241,7 @@ namespace MMogri
                 Player[] players = login.GetPlayersOfAccount(a.Id);
                 p.AppendObject((BinaryWriter w) =>
                 {
-                    w.Write(players.Length); foreach (Player pl in players) w.Write(pl.name); w.Write(login.GenSessionId(a.Id).ToString()); w.Write(a.Id.ToString());
+                    w.Write(players.Length); foreach (Player pl in players) w.Write(pl.name); w.Write(login.GenSessionToken(a.Id).ToString()); w.Write(a.Id.ToString());
                 });
             }
             NetworkHandler.Instance.SendNetworkResponse(g, p);
@@ -289,16 +288,12 @@ namespace MMogri
                 p.error = NetworkResponse.ErrorCode.DataNotFound;
             p.AppendObject((BinaryWriter w) =>
             {
-                w.Write(m.name);
-                w.Write(m.sizeX);
-                w.Write(m.sizeY);
-                foreach (Tile t in m.tiles)
-                {
-                    w.Write(t.covered);
-                    w.Write(t.lightLvl);
-                    w.Write(t.itemType);
-                    w.Write(t.tileType);
-                }
+                w.Write(new ClientGameState(
+                       m,
+                       activePlayers[g].x,
+                       activePlayers[g].y,
+                       loader.GetTileset.GetTileType(m[activePlayers[g].x, activePlayers[g].y].tileTypeId).name
+                   ).ToBytes());
             });
         }
 

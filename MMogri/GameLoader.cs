@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
+﻿using MMogri.Gameplay;
 using MMogri.Utils;
-using MMogri.Gameplay;
-using MMogri.Core;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace MMogri
 {
@@ -18,6 +15,7 @@ namespace MMogri
         Dictionary<string, TileType> tileTypes;
         Dictionary<string, Item> items;
         Dictionary<string, Quest> quests;
+        Dictionary<string, PlayerState> playerStates;
 
         Tileset tileset;
 
@@ -30,6 +28,7 @@ namespace MMogri
             tileTypes = TryLoad<TileType>(fullPath, "Tiles");
             items = TryLoad<Item>(fullPath, "Items");
             quests = TryLoad<Quest>(fullPath, "Quests");
+            playerStates = TryLoad<PlayerState>(fullPath, "PlayerStates");
         }
 
         Dictionary<string, T> TryLoad<T>(string path, string sub) where T : new()
@@ -100,11 +99,18 @@ namespace MMogri
             get
             {
                 if (tileset == null)
-                    tileset = new Tileset(tileTypes.Values.OrderBy(x => x.id).ToArray());
+                    tileset = new Tileset(tileTypes.Values.ToArray(), items.Values.ToArray());
                 return tileset;
             }
         }
 
-
+        public PlayerState GetPlayerState(string s)
+        {
+            foreach (PlayerState p in playerStates.Values)
+            {
+                if (p.name == s) return p;
+            }
+            return null;
+        }
     }
 }

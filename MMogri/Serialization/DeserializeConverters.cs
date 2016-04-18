@@ -64,36 +64,36 @@ namespace MMogri.Serialization
         }
     }
 
-    class DeserializeConverterList : DeserializeConverter
-    {
-        override public object OnDeserialize(SerializeReader reader, string s)
-        {
-            string t = reader.ReadNext();
-            int length = (int)reader.DeserializeString(t, typeof(int));
+    //class DeserializeConverterList : DeserializeConverter
+    //{
+    //    //override public object OnDeserialize(SerializeReader reader, string s)
+    //    //{
+    //    //    string t = reader.ReadNext();
+    //    //    int length = (int)reader.DeserializeValue(t, typeof(int));
 
-            string t0 = reader.ReadNext();
-            string type = (string)reader.DeserializeString(t0, typeof(string));
+    //    //    string t0 = reader.ReadNext();
+    //    //    string type = (string)reader.DeserializeValue(t0, typeof(string));
 
-            Type tt = Type.GetType(type);
+    //    //    Type tt = Type.GetType(type);
 
-            IList list = (IList)CreateGenericReferenceType(tt);
+    //    //    IList list = (IList)CreateGenericReferenceType(tt);
 
-            for (int i = 0; i < length; i++)
-            {
-                string z = reader.ReadNext();
-                object k = reader.DeserializeString(z, tt);
-                list.Add(k);
-            }
+    //    //    for (int i = 0; i < length; i++)
+    //    //    {
+    //    //        string z = reader.ReadNext();
+    //    //        object k = reader.DeserializeString(z, tt);
+    //    //        list.Add(k);
+    //    //    }
 
-            return list;
-        }
+    //    //    return list;
+    //    //}
 
-        object CreateGenericReferenceType(Type t)
-        {
-            Type n = typeof(List<>);
-            Type[] typeArgs = { typeof(string) };
-            Type construct = n.MakeGenericType(typeArgs);
-            return Activator.CreateInstance(construct);
-        }
-    }
+    //    object CreateGenericReferenceType(Type t)
+    //    {
+    //        Type n = typeof(List<>);
+    //        Type[] typeArgs = { typeof(string) };
+    //        Type construct = n.MakeGenericType(typeArgs);
+    //        return Activator.CreateInstance(construct);
+    //    }
+    //}
 }

@@ -18,7 +18,7 @@ namespace MMogri.Security
         public AccountStatus status;
         public string email;
         public Guid password;
-        public Guid sessionId;
+        public string sessionToken;
         public DateTime lastLogin;
         public DateTime createdAt;
 

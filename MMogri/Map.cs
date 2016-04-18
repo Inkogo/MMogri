@@ -1,14 +1,12 @@
-﻿using System;
+﻿using MMogri.Scripting;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
+using MMogri.Renderer;
 
 namespace MMogri.Gameplay
 {
     [System.Serializable]
-    public class Map
+    public class Map : ScriptableObject
     {
         public Guid Id;
         public string name;
@@ -19,6 +17,12 @@ namespace MMogri.Gameplay
 
         public Tile[] tiles;
         public List<Entity> entities;
+
+        public string onTickCallback;
+        public string onExitTopCallback;
+        public string onExitRightCallback;
+        public string onExitBottomCallback;
+        public string onExitLeftCallback;
 
         [System.NonSerialized]
         public bool isDirty;
@@ -39,7 +43,7 @@ namespace MMogri.Gameplay
         {
             get
             {
-                if (!CheckTileBounds(x, y)) return default(Tile);
+                if (!CheckTileBounds(x, y)) return null;
                 return tiles[(y * sizeX) + x];
             }
             set
@@ -51,7 +55,7 @@ namespace MMogri.Gameplay
 
         public void SetTileType(int x, int y, int id)
         {
-            SetTile(x, y, (Tile t) => t.tileType = id);
+            SetTile(x, y, (Tile t) => t.tileTypeId = id);
         }
 
         public void SetTileLight(int x, int y, int lvl)
@@ -77,7 +81,7 @@ namespace MMogri.Gameplay
                 for (int y = 0; y < sizeY; y++)
                 {
                     if (points.Contains(new Point(x, y))) continue;
-                    UpdateLight(x, y, t.tileTypes[this[x, y].tileType].lightEmission, ref points, t);
+                    UpdateLight(x, y, t.GetTileType(this[x, y].tileTypeId).lightEmission, ref points, t);
                 }
             }
         }
@@ -85,7 +89,70 @@ namespace MMogri.Gameplay
         public void UpdateLightMap(int x, int y, Tileset t)
         {
             List<Point> points = new List<Point>();
-            UpdateLight(x, y, t.tileTypes[this[x, y].tileType].lightEmission, ref points, t);
+            UpdateLight(x, y, t.GetTileType(this[x, y].tileTypeId).lightEmission, ref points, t);
+        }
+
+        public Entity FindEntityOnPosition(int x, int y)
+        {
+            foreach (Entity e in entities)
+            {
+                if (e.x == x && e.y == y) return e;
+            }
+            return null;
+        }
+
+        public void UpdateMapBake(Tileset tileset)
+        {
+            for (int x = 0; x < sizeX; x++)
+            {
+                for (int y = 0; y < sizeY; y++)
+                {
+                    Tile t = this[x, y];
+                    //optimize this by doing the search once for all entites and store it in a quick lookup table!
+                    Entity e = FindEntityOnPosition(x, y);
+
+                    IRenderable r;
+                    if (e != null)
+                    {
+                        r = e;
+                    }
+                    else if (t.itemType >= 0)
+                    {
+                        r = tileset.GetItem(t.itemType);
+                    }
+                    else
+                    {
+                        r = tileset.GetTileType(t.tileTypeId);
+                    }
+
+                    t.UpdateBake(r.GetTag(t), r.GetColor(t));
+                }
+            }
+        }
+
+        public void OnTick()
+        {
+            CallLuaCallback(onTickCallback, null);
+        }
+
+        public void OnExitTop(Player p)
+        {
+            CallLuaCallback(onExitTopCallback, new object[] { p });
+        }
+
+        public void OnExitRight(Player p)
+        {
+            CallLuaCallback(onExitRightCallback, new object[] { p });
+        }
+
+        public void OnExitBottom(Player p)
+        {
+            CallLuaCallback(onExitBottomCallback, new object[] { p });
+        }
+
+        public void OnExitLeft(Player p)
+        {
+            CallLuaCallback(onExitLeftCallback, new object[] { p });
         }
 
         void UpdateLight(int x, int y, int f, ref List<Point> points, Tileset t)
@@ -96,41 +163,12 @@ namespace MMogri.Gameplay
             Point p = new Point(x, y);
             points.Add(p);
             SetTileLight(x, y, f);
-            if (f > 0 && t.tileTypes[this[x, y].tileType].translucent == true)
+            if (f > 0 && t.GetTileType(this[x, y].tileTypeId).translucent == true)
             {
                 foreach (Direction d in Direction.Directions())
                     if (!points.Contains(p + d))
                         UpdateLight(p.x, p.y, (byte)(f - 1), ref points, t);
             }
         }
-
-        //public void WriteBytes(BinaryWriter w)
-        //{
-        //    w.Write(name);
-        //    w.Write(sizeX);
-        //    w.Write(sizeY);
-
-        //    foreach (Tile t in tiles)
-        //    {
-        //        w.Write(t.tileType);
-        //        w.Write(t.itemType);
-        //        w.Write(t.lightLvl);
-        //        w.Write(t.covered);
-        //    }
-        //}
-
-        //public static Map FromBytes(BinaryReader r)
-        //{
-        //    Map m = new Map(
-        //        r.ReadString(),
-        //        r.ReadInt32(),
-        //        r.ReadInt32()
-        //        );
-        //    for (int i = 0; i < m.sizeX * m.sizeY; i++)
-        //    {
-        //        m.tiles[i] = new Tile(r.ReadInt32(), r.ReadInt32(), r.ReadInt32(), r.ReadBoolean());
-        //    }
-        //    return m;
-        //}
     }
 }
