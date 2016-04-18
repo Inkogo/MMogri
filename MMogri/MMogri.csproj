@@ -95,7 +95,7 @@
     <Compile Include="Entity.cs" />
     <Compile Include="EntityUpdate.cs" />
     <Compile Include="Equipment.cs" />
-    <Compile Include="IRenderable.cs" />
+    <Compile Include="Renderer\IRenderable.cs" />
     <Compile Include="LuaScript.cs" />
     <Compile Include="Utils\FileUtils.cs" />
     <Compile Include="GameCore.cs" />
