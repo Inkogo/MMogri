@@ -11,6 +11,7 @@ namespace MMogri
     {
         public string name;
         public bool adminOnly;  //replace this later!
+        public string keybindPath;
 
         public void OnAction(string action, params object[] o)
         {

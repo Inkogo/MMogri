@@ -43,12 +43,14 @@ namespace MMogri.Core
             //    new Dictionary<string, int>() { { "a", 1 }, { "b", 2 } },
             //    new Serialization.TestStruct(8)
             //    );
-            //Serialization.SerializeWriter w = new Serialization.SerializeWriter();
-            //w.Serialize<Serialization.TestClass>(path, t);
+
+            MMogri.Gameplay.Map mp = new Gameplay.Map("testMap", 40, 40);
+            Serialization.SerializeWriter w = new Serialization.SerializeWriter();
+            w.Serialize<MMogri.Gameplay.Map>(path, mp);
 
             //Deserialize
             //Serialization.SerializeReader r = new Serialization.SerializeReader();
-            //Serialization.TestClass2 t = r.Deserialize<Serialization.TestClass2>(path);
+            //Serialization.TestClass t = r.Deserialize<Serialization.TestClass>(path);
             //Debugging.Debug.Log(t);
 
             return;
@@ -92,10 +94,8 @@ namespace MMogri.Core
             FileBrowserScreen s = new FileBrowserScreen(gameWindow, input, "serverInf.xml");
             string path = s.BrowseDirectory(AppDomain.CurrentDomain.BaseDirectory);
 
-            string serverPath = System.IO.Path.Combine(path);
-
-            ServerInf inf = Utils.FileUtils.LoadFromXml<ServerInf>(serverPath);
-            ServerMain server = new ServerMain(inf, gameWindow);
+            ServerInf inf = Utils.FileUtils.LoadFromXml<ServerInf>(path);
+            ServerMain server = new ServerMain(inf, path, gameWindow);
 
             gameWindow.Clear();
 
@@ -142,7 +142,7 @@ namespace MMogri.Core
                 }
             }
 
-            ClientMain client = new ClientMain(inf, gameWindow, input);
+            ClientMain client = new ClientMain(inf, path, gameWindow, input);
 
             gameWindow.Clear();
 

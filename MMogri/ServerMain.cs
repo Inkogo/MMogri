@@ -15,6 +15,7 @@ namespace MMogri
     class ServerMain
     {
         ServerInf serverInf;
+        string serverPath;
         GameLoader loader;
         GameCore core;
         LuaHandler lua;
@@ -26,9 +27,10 @@ namespace MMogri
         int serverTick;
         int lastSave;
 
-        public ServerMain(ServerInf serverInf, GameWindow window)
+        public ServerMain(ServerInf serverInf, string serverPath, GameWindow window)
         {
             this.serverInf = serverInf;
+            this.serverPath = serverPath;
 
             loader = new GameLoader();
             core = new GameCore(loader, AddClientUpdate);
@@ -36,8 +38,8 @@ namespace MMogri
             clientUpdates = new ConcurrentStack<ClientUpdate>();
             cmdHandler = new CmdConsole();
 
-            loader.Load(ServerPath);
-            login = new LoginHandler(ServerPath);
+            loader.Load(serverPath);
+            login = new LoginHandler(serverPath);
 
             lua = new LuaHandler();
             lua.RegisterGlobalClass("Core", core);
@@ -53,10 +55,6 @@ namespace MMogri
                 foreach (Guid g in activePlayers.Values.Select(x => x.mapId).Distinct().ToList())
                 {
                     Map m = loader.GetMap(g);
-                    foreach (Tile t in m.tiles)
-                    {
-                        t.OnTick();
-                    }
                     foreach (Entity e in m.entities)
                     {
                         e.OnTick();
@@ -146,7 +144,7 @@ namespace MMogri
                         {
                             Player pl = login.CreatePlayer(r.requestParams[0], new Guid(r.requestParams[1]), loader.GetMap("Test Map").Id, 3, 3);
                             RegisterPlayer(pl, g);
-                            RespondPlayerJoined(true, g);
+                            RespondClientState(pl, g);
                         }
                     }
                     break;
@@ -157,16 +155,15 @@ namespace MMogri
                         if (login.ValidateSessionId(new Guid(r.requestParams[1]), r.requestParams[2]))
                         {
                             RegisterPlayer(pp, g);
-                            RespondPlayerJoined(true, g);
+                            RespondClientState(pp, g);
                         }
-                        else
-                            RespondPlayerJoined(false, g);
                     }
                     break;
                 case NetworkRequest.RequestType.GetKeybinds:
                     {
-                        Keybind[] keybinds = Utils.FileUtils.LoadFromXml<Keybind[]>(Path.Combine(ServerPath, "keybindings.xml"));
-                        RespondKeybinds(keybinds, g);
+                        //0=playerState
+                        string p = loader.GetPlayerState(r.requestParams[0]).keybindPath;
+                        RespondKeybinds(loader.GetKeybindsByPath(p), g);
                     }
                     break;
                 case NetworkRequest.RequestType.PlayerInput:
@@ -255,14 +252,6 @@ namespace MMogri
             NetworkHandler.Instance.SendNetworkResponse(g, p);
         }
 
-        void RespondPlayerJoined(bool b, Guid g)
-        {
-            NetworkResponse p = new NetworkResponse();
-            p.type = NetworkResponse.ResponseType.PlayerJoined;
-            p.error = b ? NetworkResponse.ErrorCode.None : NetworkResponse.ErrorCode.SecurityFailed;
-            NetworkHandler.Instance.SendNetworkResponse(g, p);
-        }
-
         void RespondKeybinds(Keybind[] keybinds, Guid g)
         {
             NetworkResponse p = new NetworkResponse();
@@ -271,6 +260,7 @@ namespace MMogri
                 p.error = NetworkResponse.ErrorCode.DataNotFound;
             p.AppendObject((BinaryWriter w) =>
             {
+                w.Write(activePlayers[g].playerState);
                 w.Write(keybinds.Length);
                 foreach (Keybind b in keybinds)
                 {
@@ -280,29 +270,28 @@ namespace MMogri
             NetworkHandler.Instance.SendNetworkResponse(g, p);
         }
 
-        void RespondMap(Map m, Guid g)
+        void RespondClientState(Player pl, Guid g)
         {
             NetworkResponse p = new NetworkResponse();
-            p.type = NetworkResponse.ResponseType.MapInfo;
+            p.type = NetworkResponse.ResponseType.ClientState;
+            Map m = loader.GetMap(pl.mapId);
             if (m == null)
                 p.error = NetworkResponse.ErrorCode.DataNotFound;
+
+            //not sure if I like this? write it to stream directly maybe? 
+            byte[] u = new ClientGameState(
+                                m,
+                                activePlayers[g].x,
+                                activePlayers[g].y,
+                                loader.GetTileset.GetTileType(m[activePlayers[g].x, activePlayers[g].y].tileTypeId).name,
+                                activePlayers[g].playerState
+                                ).ToBytes();
+
             p.AppendObject((BinaryWriter w) =>
             {
-                w.Write(new ClientGameState(
-                       m,
-                       activePlayers[g].x,
-                       activePlayers[g].y,
-                       loader.GetTileset.GetTileType(m[activePlayers[g].x, activePlayers[g].y].tileTypeId).name
-                   ).ToBytes());
+                w.Write(u.Length);
+                w.Write(u);
             });
-        }
-
-        string ServerPath
-        {
-            get
-            {
-                return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, serverInf.name);
-            }
         }
     }
 }

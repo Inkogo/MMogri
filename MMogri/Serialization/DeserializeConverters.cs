@@ -4,12 +4,20 @@ using System.Collections;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace MMogri.Serialization
 {
     abstract class DeserializeConverter
     {
         abstract public object OnDeserialize(SerializeReader reader, string s);
+
+        //move this in writer?
+        protected object CreateGenericReferenceType(Type n, Type[] typeArgs)
+        {
+            Type construct = n.MakeGenericType(typeArgs);
+            return Activator.CreateInstance(construct);
+        }
     }
 
     class DeserializeConverterString : DeserializeConverter
@@ -53,6 +61,17 @@ namespace MMogri.Serialization
         }
     }
 
+    class DeserializeConverterByte : DeserializeConverter
+    {
+        override public object OnDeserialize(SerializeReader reader, string s)
+        {
+            byte b;
+            if (byte.TryParse(s, out b))
+                return b;
+            return 0;
+        }
+    }
+
     class DeserializeConverterBoolean : DeserializeConverter
     {
         override public object OnDeserialize(SerializeReader reader, string s)
@@ -64,36 +83,53 @@ namespace MMogri.Serialization
         }
     }
 
-    //class DeserializeConverterList : DeserializeConverter
-    //{
-    //    //override public object OnDeserialize(SerializeReader reader, string s)
-    //    //{
-    //    //    string t = reader.ReadNext();
-    //    //    int length = (int)reader.DeserializeValue(t, typeof(int));
+    class DeserializeConverterList : DeserializeConverter
+    {
+        override public object OnDeserialize(SerializeReader reader, string s)
+        {
+            //read list here!
 
-    //    //    string t0 = reader.ReadNext();
-    //    //    string type = (string)reader.DeserializeValue(t0, typeof(string));
+            using (StringReader r = new StringReader(s))
+            {
+                int length = (int)reader.Test(reader.ReadNext(r), typeof(int));
+                string typeName = (string)reader.Test(reader.ReadNext(r), typeof(string));
+                Type t = Type.GetType(typeName);
+                IList list = (IList)CreateGenericReferenceType(typeof(List<>), new Type[] { t });
 
-    //    //    Type tt = Type.GetType(type);
+                for (int i = 0; i < length; i++)
+                {
+                    list.Add(reader.Test(reader.ReadNext(r), t));
+                }
 
-    //    //    IList list = (IList)CreateGenericReferenceType(tt);
+                return list;
+            }
+        }
+    }
 
-    //    //    for (int i = 0; i < length; i++)
-    //    //    {
-    //    //        string z = reader.ReadNext();
-    //    //        object k = reader.DeserializeString(z, tt);
-    //    //        list.Add(k);
-    //    //    }
+    class DeserializeConverterDictionary : DeserializeConverter
+    {
+        override public object OnDeserialize(SerializeReader reader, string s)
+        {
+            //read list here!
 
-    //    //    return list;
-    //    //}
+            using (StringReader r = new StringReader(s))
+            {
+                int length = (int)reader.Test(reader.ReadNext(r), typeof(int));
+                string typeName0 = (string)reader.Test(reader.ReadNext(r), typeof(string));
+                Type t0 = Type.GetType(typeName0);
 
-    //    object CreateGenericReferenceType(Type t)
-    //    {
-    //        Type n = typeof(List<>);
-    //        Type[] typeArgs = { typeof(string) };
-    //        Type construct = n.MakeGenericType(typeArgs);
-    //        return Activator.CreateInstance(construct);
-    //    }
-    //}
+                string typeName1 = (string)reader.Test(reader.ReadNext(r), typeof(string));
+                Type t1 = Type.GetType(typeName1);
+
+                IDictionary dict = (IDictionary)CreateGenericReferenceType(typeof(Dictionary<,>), new Type[] { t0, t1 });
+
+                for (int i = 0; i < length; i++)
+                {
+                    dict.Add(reader.Test(reader.ReadNext(r), t0), reader.Test(reader.ReadNext(r), t1));
+                }
+
+                return dict;
+            }
+        }
+    }
 }

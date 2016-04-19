@@ -3,7 +3,7 @@
 namespace MMogri
 {
     [System.Serializable]
-    public class Tile : ScriptableObject
+    public class Tile : ScriptableDataContainer
     {
         public int tileTypeId;
         public int itemType;
@@ -16,9 +16,7 @@ namespace MMogri
         [System.NonSerialized]
         public short bakedColor;
 
-        public string onTickCallback;
-        public string onEnterCallback;
-        public string onExitCallback;
+        public Tile () { }
 
         public Tile(int t, int i, int l, bool c)
         {
@@ -26,7 +24,6 @@ namespace MMogri
             itemType = i;
             lightLvl = l;
             covered = c;
-
         }
 
         public void SetTileType(int i)
@@ -38,21 +35,6 @@ namespace MMogri
         {
             bakedTag = t;
             bakedColor = (short)c;
-        }
-
-        public void OnTick()
-        {
-            CallLuaCallback(onTickCallback, null);
-        }
-
-        public void OnEnter(Entity e)
-        {
-            CallLuaCallback(onEnterCallback, new object[] { e });
-        }
-
-        public void OnExit(Entity e)
-        {
-            CallLuaCallback(onExitCallback, new object[] { e });
         }
     }
 }

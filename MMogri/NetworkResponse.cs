@@ -15,9 +15,8 @@ namespace MMogri
             Undefined,
             AccountLogin,
             AccountCreate,
-            PlayerJoined,
             KeybindsInfo,
-            MapInfo,
+            ClientState,
             Update,
             ChatMessage,
         }

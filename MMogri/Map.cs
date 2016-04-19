@@ -37,6 +37,8 @@ namespace MMogri.Gameplay
             sizeX = x;
             sizeY = y;
             tiles = new Tile[sizeX * sizeY];
+            for (int i = 0; i < sizeX * sizeY; i++)
+                tiles[i] = new Tile();
         }
 
         public Tile this[int x, int y]

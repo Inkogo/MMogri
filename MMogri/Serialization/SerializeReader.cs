@@ -13,13 +13,15 @@ namespace MMogri.Serialization
             {typeof(int), new DeserializeConverterInt() },
             {typeof(string), new DeserializeConverterString() },
             {typeof(bool), new DeserializeConverterBoolean() },
+                        {typeof(byte), new DeserializeConverterByte() },
+            {typeof(List<>), new DeserializeConverterList() },
+                        {typeof(Dictionary<,>), new DeserializeConverterDictionary() },
         };
 
         const char delimeter = ';';
 
         public SerializeReader()
         {
-            //reader = new StringReader(s);
         }
 
 
@@ -27,11 +29,11 @@ namespace MMogri.Serialization
         {
             using (StreamReader reader = new StreamReader(path))
             {
-                //object boxed = new T();
                 return (T)DeserializeObject(reader.ReadToEnd(), typeof(T));
             }
         }
 
+        //clean up this mess!
         public object DeserializeObject(string o, Type t)
         {
             object boxed = Activator.CreateInstance(t);
@@ -65,16 +67,34 @@ namespace MMogri.Serialization
             }
         }
 
-        public object DeserializeValue(string s, Type t)
+        //meeeeeessssssyyyyyy
+        public object Test(string s, Type t)
         {
-            object o = null;
-            if (converters.ContainsKey(t))
-                converters[t].OnDeserialize(this, s);
-            else
-                o = DeserializeObject(s, t);
-            return o;
+            if (s.Length == 0 || s[0] == '-') return null;
+
+            int ind = s.IndexOf('=');
+            if (ind >= 0)
+            {
+                string value = s.Substring(ind + 1, s.Length - ind - 1);
+
+                return DeserializeValue(value, t);
+            }
+            return null;
         }
 
+        public object DeserializeValue(string s, Type nt)
+        {
+            foreach (Type t in converters.Keys)
+            {
+                if (nt.IsSubclassOf(t) || (nt.IsGenericType && nt.GetGenericTypeDefinition() == t) || nt == t)
+                {
+                    return converters[t].OnDeserialize(this, s);
+                }
+            }
+            return DeserializeObject(s, nt);
+        }
+
+        //replace this with state machine to fix N depth problems!
         public string ReadNext(StringReader reader)
         {
             StringBuilder b = new StringBuilder();
@@ -84,7 +104,7 @@ namespace MMogri.Serialization
                 char c = (char)reader.Read();
 
                 if (c == '\n' || c == '\r') { continue; }
-                if(outCase != '"' && (c==' ')) { continue; }
+                if (outCase != '"' && (c == ' ')) { continue; }
                 else if (outCase != null && c == (char)outCase) { outCase = null; continue; }
                 else if (outCase != null && c != (char)outCase) { }
                 else if (c == '"') { outCase = '"'; continue; }

@@ -12,8 +12,11 @@ namespace MMogri.Serialization
         {
             {typeof(List<>), new SerializeConverterList() },
             {typeof(int), new SerializeConverterValueType() },
+            {typeof(bool), new SerializeConverterValueType() },
             {typeof(string), new SerializeConverterValueType() },
             {typeof(byte), new SerializeConverterValueType() },
+            {typeof(Guid), new SerializeConverterValueType() },
+            {typeof(Array), new SerializeConverterArray() },
             {typeof(Dictionary<,>), new SerializeConverterDictionary() },
         };
 
@@ -39,8 +42,6 @@ namespace MMogri.Serialization
 
         void SerializeObject(Object t)
         {
-            WriteStart();
-
             MemberInfo[] m = t.GetType().GetMembers(BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
 
             foreach (MemberInfo i in m)
@@ -56,8 +57,6 @@ namespace MMogri.Serialization
 
                 WriteEntry(i.Name, value);
             }
-
-            WriteEnd();
         }
 
         public void WriteStart()
@@ -73,7 +72,7 @@ namespace MMogri.Serialization
             Append("}");
         }
 
-        public void WriteIndent ()
+        public void WriteIndent()
         {
             for (int i = 0; i < indent; i++) stringB.Append("  ");
         }
@@ -100,14 +99,14 @@ namespace MMogri.Serialization
         {
             if (o == null)
             {
-                Append("NULL");
+                Append("null");
                 return;
             }
 
             //look for converter
+            Type nt = o.GetType();
             foreach (Type t in converters.Keys)
             {
-                Type nt = o.GetType();
                 if (nt.IsSubclassOf(t) || (nt.IsGenericType && nt.GetGenericTypeDefinition() == t) || nt == t)
                 {
                     converters[t].OnSerialize(this, o);
@@ -115,7 +114,9 @@ namespace MMogri.Serialization
                 }
             }
             //no converter found! serialize it directly!
+            WriteStart();
             SerializeObject(o);
+            WriteEnd();
         }
 
         public override string ToString()

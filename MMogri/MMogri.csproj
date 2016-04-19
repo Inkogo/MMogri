@@ -85,7 +85,6 @@
     <Compile Include="CmdConsole.cs" />
     <Compile Include="Color.cs" />
     <Compile Include="FileBrowserScreen.cs" />
-    <Compile Include="CommitTest.cs" />
     <Compile Include="Connection.cs" />
     <Compile Include="ContentFrame.cs" />
     <Compile Include="Curve.cs" />
@@ -98,6 +97,7 @@
     <Compile Include="LuaScript.cs" />
     <Compile Include="GameWindow.cs" />
     <Compile Include="IRenderable.cs" />
+    <Compile Include="ScriptableDataContainer.cs" />
     <Compile Include="Utils\FileUtils.cs" />
     <Compile Include="GameCore.cs" />
     <Compile Include="GameLoader.cs" />
@@ -139,7 +139,6 @@
     <Compile Include="Serialization\Serializer.cs" />
     <Compile Include="Serialization\SerializeReader.cs" />
     <Compile Include="Serialization\SerializeWriter.cs" />
-    <Compile Include="Serialization\TestClass.cs" />
     <Compile Include="Server.cs" />
     <Compile Include="ServerInf.cs" />
     <Compile Include="ServerMain.cs" />

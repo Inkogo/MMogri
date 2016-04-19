@@ -55,7 +55,7 @@ namespace MMogri.Core
         }
 
         [LuaFunc]
-        public bool ReadScriptableBool(ScriptableObject o, string s)
+        public bool ReadScriptableBool(ScriptableDataContainer o, string s)
         {
             if (o.data.ContainsKey(s))
                 return BitConverter.ToBoolean(o.data[s], 0);
@@ -63,7 +63,7 @@ namespace MMogri.Core
         }
 
         [LuaFunc]
-        public void WriteScriptableBool(ScriptableObject o, string s, bool b)
+        public void WriteScriptableBool(ScriptableDataContainer o, string s, bool b)
         {
             if (o.data.ContainsKey(s))
                 o.data[s] = BitConverter.GetBytes(b);
@@ -72,7 +72,7 @@ namespace MMogri.Core
         }
 
         [LuaFunc]
-        public string ReadScriptableString(ScriptableObject o, string s)
+        public string ReadScriptableString(ScriptableDataContainer o, string s)
         {
             if (o.data.ContainsKey(s))
                 return BitConverter.ToString(o.data[s], 0);
@@ -80,7 +80,7 @@ namespace MMogri.Core
         }
 
         [LuaFunc]
-        public void WriteScriptableString(ScriptableObject o, string s, string v)
+        public void WriteScriptableString(ScriptableDataContainer o, string s, string v)
         {
             if (o.data.ContainsKey(s))
                 o.data[s] = Encoding.ASCII.GetBytes(v);
@@ -89,7 +89,7 @@ namespace MMogri.Core
         }
 
         [LuaFunc]
-        public int ReadScriptableInt(ScriptableObject o, string s)
+        public int ReadScriptableInt(ScriptableDataContainer o, string s)
         {
             if (o.data.ContainsKey(s))
                 return BitConverter.ToInt32(o.data[s], 0);
@@ -97,7 +97,7 @@ namespace MMogri.Core
         }
 
         [LuaFunc]
-        public void WriteScriptableInt(ScriptableObject o, string s, int i)
+        public void WriteScriptableInt(ScriptableDataContainer o, string s, int i)
         {
             if (o.data.ContainsKey(s))
                 o.data[s] = BitConverter.GetBytes(i);

@@ -25,11 +25,12 @@ namespace MMogri
         public int mapSizeX, mapSizeY;
         public int posX, posY;
         public string posText;
+        public string playerState;
         public TileVis[] tiles;
 
         public ClientGameState() { }
 
-        public ClientGameState(Map m, int px, int py, string pt)
+        public ClientGameState(Map m, int px, int py, string pt, string ps)
         {
             mapName = m.name;
             mapSizeX = m.sizeX;
@@ -37,6 +38,7 @@ namespace MMogri
             posX = px;
             posY = py;
             posText = pt;
+            playerState = ps;
 
             tiles = new TileVis[mapSizeX * mapSizeY];
             for (int i = 0; i < tiles.Length; i++)
@@ -73,6 +75,7 @@ namespace MMogri
                     w.Write(posX);
                     w.Write(posY);
                     w.Write(posText);
+                    w.Write(playerState);
                     foreach (TileVis t in tiles)
                     {
                         w.Write(t.covered);

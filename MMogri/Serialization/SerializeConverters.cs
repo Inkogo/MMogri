@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections;
 
 namespace MMogri.Serialization
 {
@@ -28,11 +24,31 @@ namespace MMogri.Serialization
             {
                 writer.WriteStart();
                 writer.WriteEntry("Length", list.Count);
-                writer.WriteEntry("Type", list.GetType().GetGenericArguments()[0].Name);
+                writer.WriteEntry("Type", list.GetType().GetGenericArguments()[0].FullName);
 
                 for (int i = 0; i < list.Count; i++)
                 {
                     writer.WriteEntry("Value_" + i.ToString(), list[i]);
+                }
+                writer.WriteEnd();
+            }
+        }
+    }
+
+    class SerializeConverterArray : SerializeConverter
+    {
+        override public void OnSerialize(SerializeWriter writer, object o)
+        {
+            object[] arr = (object[])o;
+            if (arr != null)
+            {
+                writer.WriteStart();
+                writer.WriteEntry("Length", arr.Length);
+                //writer.WriteEntry("Type", arr.G);
+
+                for (int i = 0; i < arr.Length; i++)
+                {
+                    writer.WriteEntry("Value_" + i.ToString(), arr[i]);
                 }
                 writer.WriteEnd();
             }
@@ -48,8 +64,8 @@ namespace MMogri.Serialization
             {
                 writer.WriteStart();
                 writer.WriteEntry("Length", dict.Count);
-                writer.WriteEntry("Key_Type", dict.GetType().GetGenericArguments()[0].Name);
-                writer.WriteEntry("Value_Type", dict.GetType().GetGenericArguments()[1].Name);
+                writer.WriteEntry("Key_Type", dict.GetType().GetGenericArguments()[0].FullName);
+                writer.WriteEntry("Value_Type", dict.GetType().GetGenericArguments()[1].FullName);
 
                 IEnumerator keys = dict.Keys.GetEnumerator();
                 IEnumerator values = dict.Values.GetEnumerator();

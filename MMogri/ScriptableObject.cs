@@ -5,10 +5,8 @@ using System.Runtime.Serialization;
 namespace MMogri.Scripting
 {
     [System.Serializable]
-    public abstract class ScriptableObject
+    public abstract class ScriptableObject : ScriptableDataContainer
     {
-        public Dictionary<string, byte[]> data;
-
         public string luaPath;
         LuaScript lua;
 
@@ -18,8 +16,6 @@ namespace MMogri.Scripting
             {
                 lua = new LuaScript(luaPath);
             }
-
-            data = new Dictionary<string, byte[]>();
         }
 
         protected object[] CallLuaCallback(string s, params object[] o)

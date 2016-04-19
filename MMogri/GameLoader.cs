@@ -16,6 +16,7 @@ namespace MMogri
         Dictionary<string, Item> items;
         Dictionary<string, Quest> quests;
         Dictionary<string, PlayerState> playerStates;
+        Dictionary<string, Keybind[]> keybinds;
 
         Tileset tileset;
 
@@ -29,9 +30,10 @@ namespace MMogri
             items = TryLoad<Item>(fullPath, "Items");
             quests = TryLoad<Quest>(fullPath, "Quests");
             playerStates = TryLoad<PlayerState>(fullPath, "PlayerStates");
+            keybinds = TryLoad<Keybind[]>(fullPath, "Keybinds");
         }
 
-        Dictionary<string, T> TryLoad<T>(string path, string sub) where T : new()
+        Dictionary<string, T> TryLoad<T>(string path, string sub) /*where T*/ /*: new()*/
         {
             Dictionary<string, T> t = new Dictionary<string, T>();
 
@@ -43,7 +45,7 @@ namespace MMogri
                              .ToArray();
             if (files.Length == 0)
             {
-                T def = new T();
+                T def = default(T);
                 string p = Path.Combine(fullPath, "default.xml");
                 Save<T>(def, p);
                 t.Add(p, def);
@@ -111,6 +113,11 @@ namespace MMogri
                 if (p.name == s) return p;
             }
             return null;
+        }
+
+        public Keybind[] GetKeybindsByPath (string p)
+        {
+            return keybinds[p];
         }
     }
 }

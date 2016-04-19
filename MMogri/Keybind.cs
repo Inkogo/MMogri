@@ -1,22 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MMogri.Input;
+﻿using MMogri.Input;
 
 namespace MMogri
 {
     [System.Serializable]
- public   struct Keybind
+    public class Keybind
     {
         public KeyCode key;
         public KeyCode altKey;
         public string action;
 
+        public Keybind() { }
+
         public Keybind(string action, KeyCode key) : this(action, key, KeyCode.NoName) { }
 
-        public Keybind (string action, KeyCode key, KeyCode alt)
+        public Keybind(string action, KeyCode key, KeyCode alt)
         {
             this.action = action;
             this.key = key;

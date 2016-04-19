@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MMogri
+namespace MMogri.Scripting
 {
-    class CommitTest
+    public abstract class ScriptableDataContainer
     {
-        //TEST!
+        public Dictionary<string, byte[]> data;
     }
 }

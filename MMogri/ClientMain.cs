@@ -4,13 +4,15 @@ using MMogri.Renderer;
 using MMogri.Utils;
 using System;
 using System.IO;
+using System.Collections.Generic;
 
 namespace MMogri
 {
     class ClientMain
     {
         ClientInf clientInf;
-        Keybind[] keybinds;
+        string clientPath;
+        Dictionary<string, Keybind[]> loadedKeybinds;
 
         GameWindow window;
         InputHandler input;
@@ -18,27 +20,31 @@ namespace MMogri
         LoginScreen loginScreen;
         MapScreen mapScreen;
 
+        ClientGameState gameState;
         bool inputLock;
 
-        public ClientMain(ClientInf inf, GameWindow window, InputHandler input)
+        public ClientMain(ClientInf inf, string path, GameWindow window, InputHandler input)
         {
             clientInf = inf;
+            clientPath = path;
 
             this.window = window;
             this.input = input;
 
             loginScreen = new LoginScreen(window, input, this);
             mapScreen = new MapScreen(window, input);
+            loadedKeybinds = new Dictionary<string, Keybind[]>();
+            gameState = new ClientGameState();
 
             NetworkHandler.Instance.ConnectToServer(System.Net.IPAddress.Parse(inf.ip), inf.port, this);
         }
 
         public void ClientTick()
         {
-            if (keybinds == null || inputLock) return;
+            if (CurrentKeybinds == null || inputLock) return;
 
             input.CatchInput();
-            foreach (Keybind b in keybinds)
+            foreach (Keybind b in CurrentKeybinds)
             {
                 if (input.GetKey(b.key, b.altKey))
                 {
@@ -50,6 +56,9 @@ namespace MMogri
                     inputLock = true;
                 }
             }
+            //default input
+            if (input.GetKey(KeyCode.H))
+                foreach (Keybind k in CurrentKeybinds) Console.Write("[" + k.key + "] " + k.action);
         }
 
         public void ProcessNetworkResponse(NetworkResponse r)
@@ -57,50 +66,74 @@ namespace MMogri
             switch (r.type)
             {
                 case NetworkResponse.ResponseType.AccountLogin:
-                    if (r.error == NetworkResponse.ErrorCode.None)
                     {
-                        string[] allPlayers = null;
-                        Guid sessionId = new Guid();
-                        Guid accountId = new Guid();
+                        if (r.error == NetworkResponse.ErrorCode.None)
+                        {
+                            string[] allPlayers = null;
+                            Guid sessionId = new Guid();
+                            Guid accountId = new Guid();
 
+                            r.ReadObject((BinaryReader p) =>
+                            {
+                                allPlayers = new string[p.ReadInt32()]; for (int i = 0; i < allPlayers.Length; i++) allPlayers[i] = p.ReadString(); sessionId = new Guid(p.ReadString()); accountId = new Guid(p.ReadString());
+                            });
+
+                            loginScreen.LoginPlayer(allPlayers, accountId, sessionId);      //change this! delegate?
+                        }
+                        else
+                        {
+                            Console.WriteLine("Wrong username or password!");
+                            loginScreen.LoginAccount();
+                        }
+                    }
+                    break;
+                case NetworkResponse.ResponseType.ClientState:
+                    {
+                        Console.WriteLine("Successfully joined player!");
+
+                        //serialize clientState for the first time here?
+                        //s.FromBytes()
+                        //string n = null;
+                        ClientGameState s = null;
                         r.ReadObject((BinaryReader p) =>
                         {
-                            allPlayers = new string[p.ReadInt32()]; for (int i = 0; i < allPlayers.Length; i++) allPlayers[i] = p.ReadString(); sessionId = new Guid(p.ReadString()); accountId = new Guid(p.ReadString());
+                            s = new ClientGameState()
+                            {
+                                mapName = p.ReadString(),
+
+                            };
+                            //n = p.ReadString();
                         });
 
-                        loginScreen.LoginPlayer(allPlayers, accountId, sessionId);      //change this! delegate?
+                        if (!loadedKeybinds.ContainsKey(s.playerState) && !LoadKeybinds(s.playerState))
+                            RequestDefaultKeybinds();
                     }
-                    else
-                    {
-                        Console.WriteLine("Wrong username or password!");
-                        loginScreen.LoginAccount();
-                    }
-                    break;
-                case NetworkResponse.ResponseType.PlayerJoined:
-                    Console.WriteLine("Successfully joined player!");
-                    if (!LoadKeybinds())
-                        RequestDefaultKeybinds();
-
                     break;
                 case NetworkResponse.ResponseType.KeybindsInfo:
-                    Keybind[] k = null;
-                    r.ReadObject((BinaryReader p) =>
                     {
-                        k = new Keybind[p.ReadInt32()];
-                        for (int i = 0; i < k.Length; i++)
+                        string n = null;
+                        Keybind[] k = null;
+                        r.ReadObject((BinaryReader p) =>
                         {
-                            k[i] = new Keybind(p.ReadString(), (KeyCode)p.ReadInt32(), (KeyCode)p.ReadInt32());
-                        }
-                    });
-                    keybinds = k;
-                    SaveKeybinds();
+                            n = p.ReadString();
+                            k = new Keybind[p.ReadInt32()];
+                            for (int i = 0; i < k.Length; i++)
+                            {
+                                k[i] = new Keybind(p.ReadString(), (KeyCode)p.ReadInt32(), (KeyCode)p.ReadInt32());
+                            }
+                        });
 
+                        loadedKeybinds.Add(n, k);
+                        SaveKeybinds(n, k);
+                    }
                     break;
                 case NetworkResponse.ResponseType.Update:
-                    inputLock = false;
-                    Console.WriteLine("Change! " + System.DateTime.Now.ToString("mm:ss:ff"));
+                    {
+                        inputLock = false;
+                        Console.WriteLine("Change! " + System.DateTime.Now.ToString("mm:ss:ff"));
 
-                    //mapScreen.UpdateMap();
+                        //mapScreen.UpdateMap();
+                    }
                     break;
             }
         }
@@ -208,85 +241,48 @@ namespace MMogri
             });
         }
 
-        void SaveKeybinds()
+        void SaveClientInf()
         {
-            Directory.CreateDirectory(ClientPath);
-            FileUtils.SaveToXml<Keybind[]>(keybinds, KeybindsPath);
+            Utils.FileUtils.SaveToXml<ClientInf>(clientInf, clientPath);
         }
 
-        bool LoadKeybinds()
+        //not sure if I like this...
+        void SaveKeybinds(string playerState, Keybind[] k)
         {
-            if (File.Exists(KeybindsPath))
+            string path = Path.Combine(ClientDirectory, playerState + ".xml");
+            FileUtils.SaveToXml<Keybind[]>(k, path);
+            clientInf.keybinds.Add(playerState, path);
+
+            SaveClientInf();
+        }
+
+        bool LoadKeybinds(string playerState)
+        {
+            if (clientInf.keybinds.ContainsKey(playerState))
             {
-                keybinds = FileUtils.LoadFromXml<Keybind[]>(KeybindsPath);
+                loadedKeybinds.Add(playerState, FileUtils.LoadFromXml<Keybind[]>(clientInf.keybinds[playerState]));
                 return false;
             }
             else
                 return false;
         }
 
-        string ClientPath
+        Keybind[] CurrentKeybinds
         {
             get
             {
-                return (Path.Combine(AppDomain.CurrentDomain.BaseDirectory, clientInf.name));
+                if (loadedKeybinds.ContainsKey(gameState.playerState))
+                    return loadedKeybinds[gameState.playerState];
+                return null;
             }
         }
 
-        string KeybindsPath
+        string ClientDirectory
         {
             get
             {
-                return Path.Combine(ClientPath, "keybindings.xml");
+                return Path.GetDirectoryName(clientPath);
             }
         }
     }
 }
-
-
-
-//while (true)
-//{
-//    input.CatchInput();
-//    if (input.GetKey(KeyCode.A))
-//    {
-//        NetworkHandler.Instance.SendNetworkRequest(new NetworkRequest()
-//        {
-//            requestType = NetworkRequest.RequestType.JoinAccount,
-//            requestAction = "none",
-//            requestParams = new string[]
-//            {
-//                "Inko",
-//                "dammit".ToGuid().ToString(),
-//            }
-//        });
-//    }
-//    if (input.GetKey(KeyCode.T))
-//    {
-//        NetworkHandler.Instance.SendNetworkRequest(new NetworkRequest()
-//        {
-//            requestType = NetworkRequest.RequestType.CreateAccount,
-//            requestAction = "none",
-//            requestParams = new string[]
-//            {
-//                "Inko",
-//                "dammit".ToGuid().ToString(),
-//            }
-//        });
-//    }
-//    if (input.GetKey(KeyCode.P))
-//    {
-//        Debugging.Debug.Log(accountId);
-//        NetworkHandler.Instance.SendNetworkRequest(new NetworkRequest()
-//        {
-//            requestType = NetworkRequest.RequestType.CreatePlayer,
-//            requestAction = "none",
-//            requestParams = new string[]
-//            {
-//                "Mac",
-//                accountId.ToString(),
-//            }
-//        });
-//    }
-//}
-

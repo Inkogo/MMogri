@@ -1,4 +1,6 @@
-﻿namespace MMogri
+﻿using System.Collections.Generic;
+
+namespace MMogri
 {
     [System.Serializable]
     public class ClientInf
@@ -6,6 +8,8 @@
         public string ip;
         public int port;
         public string name;
+
+        public Dictionary<string, string> keybinds;
 
         public ClientInf() { }
 
