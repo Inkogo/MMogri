@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using MMogri.Renderer;
+using System.Linq;
 
 namespace MMogri.Gameplay
 {
@@ -16,7 +17,7 @@ namespace MMogri.Gameplay
         public int baseLightLvl;
 
         public Tile[] tiles;
-        public List<Entity> entities;
+        public List<Entity> localEntities;
 
         public string onTickCallback;
         public string onExitTopCallback;
@@ -94,16 +95,16 @@ namespace MMogri.Gameplay
             UpdateLight(x, y, t.GetTileType(this[x, y].tileTypeId).lightEmission, ref points, t);
         }
 
-        public Entity FindEntityOnPosition(int x, int y)
+        public Entity FindEntityOnPosition(int x, int y, List<Entity> n = null)
         {
-            foreach (Entity e in entities)
+            foreach (Entity e in (n == null ? localEntities : n))
             {
                 if (e.x == x && e.y == y) return e;
             }
             return null;
         }
 
-        public void UpdateMapBake(Tileset tileset)
+        public void UpdateMapBake(Tileset tileset, Player[] players)
         {
             for (int x = 0; x < sizeX; x++)
             {
@@ -111,7 +112,7 @@ namespace MMogri.Gameplay
                 {
                     Tile t = this[x, y];
                     //optimize this by doing the search once for all entites and store it in a quick lookup table!
-                    Entity e = FindEntityOnPosition(x, y);
+                    Entity e = FindEntityOnPosition(x, y, localEntities.Concat(players).ToList());
 
                     IRenderable r;
                     if (e != null)

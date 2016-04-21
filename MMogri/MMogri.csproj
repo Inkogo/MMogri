@@ -94,9 +94,11 @@
     <Compile Include="Entity.cs" />
     <Compile Include="EntityUpdate.cs" />
     <Compile Include="Equipment.cs" />
+    <Compile Include="ItemSlot.cs" />
     <Compile Include="LuaScript.cs" />
     <Compile Include="GameWindow.cs" />
     <Compile Include="IRenderable.cs" />
+    <Compile Include="MapTransitionUpdate.cs" />
     <Compile Include="ScriptableDataContainer.cs" />
     <Compile Include="Utils\FileUtils.cs" />
     <Compile Include="GameCore.cs" />
@@ -136,7 +138,6 @@
     <Compile Include="SendObject.cs" />
     <Compile Include="Serialization\DeserializeConverters.cs" />
     <Compile Include="Serialization\SerializeConverters.cs" />
-    <Compile Include="Serialization\Serializer.cs" />
     <Compile Include="Serialization\SerializeReader.cs" />
     <Compile Include="Serialization\SerializeWriter.cs" />
     <Compile Include="Server.cs" />
@@ -149,7 +150,6 @@
     <Compile Include="TextScreen.cs" />
     <Compile Include="Tile.cs" />
     <Compile Include="Tileset.cs" />
-    <Compile Include="TilesetEditor.cs" />
     <Compile Include="TileType.cs" />
     <Compile Include="UserPreferences.cs" />
   </ItemGroup>

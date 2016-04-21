@@ -32,7 +32,7 @@ namespace MMogri.Core
 
         public void Start()
         {
-            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "test.mog");
+            //string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "test.mog");
 
             //Serialize
             //Serialization.TestClass t = new Serialization.TestClass(
@@ -44,16 +44,29 @@ namespace MMogri.Core
             //    new Serialization.TestStruct(8)
             //    );
 
-            MMogri.Gameplay.Map mp = new Gameplay.Map("testMap", 40, 40);
-            Serialization.SerializeWriter w = new Serialization.SerializeWriter();
-            w.Serialize<MMogri.Gameplay.Map>(path, mp);
+            //TestClass mp = new TestClass()
+            //{
+            //    races = new List<Gameplay.RaceInf>()
+            //    {
+            //        new Gameplay.RaceInf("abc", 7),
+            //        new Gameplay.RaceInf("aaah", 4),
+            //    },
+            //    name = "Heyoo",
+            //    bytes = new byte[5],
+            //    dict = new Dictionary<int, string>()
+            //    {
+            //        {2, "zwei" },
+            //        {3, "three" },
+            //    },
+            //    map = new Gameplay.Map("Aaaah", 3, 3),
+            //};
+            //Serialization.SerializeWriter w = new Serialization.SerializeWriter();
+            //w.Serialize<TestClass>(path, mp);
 
             //Deserialize
             //Serialization.SerializeReader r = new Serialization.SerializeReader();
-            //Serialization.TestClass t = r.Deserialize<Serialization.TestClass>(path);
-            //Debugging.Debug.Log(t);
-
-            return;
+            //TestClass mp = r.Deserialize<TestClass>(path);
+            //Debugging.Debug.Log(mp);
 
             // i really dont like this!
             StartScreen startScreen = new StartScreen(gameWindow, input);

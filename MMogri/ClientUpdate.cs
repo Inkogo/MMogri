@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
 
 namespace MMogri
 {
@@ -14,6 +10,7 @@ namespace MMogri
         {
             mapUpdate = 0,
             entityUpdate = 1,
+            mapChangeUpdate = 2,
             //playerUpdate = 2,
             //worldUpdate = 3,
         }
@@ -22,6 +19,7 @@ namespace MMogri
         {
             { 0, typeof(MapUpdate)},
             { 1, typeof(EntityUpdate)},
+            { 2, typeof(MapTransitionUpdate)},
 //{ 2, typeof(PlayerUpdate)},
 //{ 3, typeof(WorldUpdate)},
         };

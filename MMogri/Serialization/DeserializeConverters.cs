@@ -10,7 +10,7 @@ namespace MMogri.Serialization
 {
     abstract class DeserializeConverter
     {
-        abstract public object OnDeserialize(SerializeReader reader, string s);
+        abstract public object OnDeserialize(SerializeReader reader, string s, Type t);
 
         //move this in writer?
         protected object CreateGenericReferenceType(Type n, Type[] typeArgs)
@@ -22,15 +22,32 @@ namespace MMogri.Serialization
 
     class DeserializeConverterString : DeserializeConverter
     {
-        override public object OnDeserialize(SerializeReader reader, string s)
+        override public object OnDeserialize(SerializeReader reader, string s, Type t)
         {
             return s;
         }
     }
 
+    class DeserializeConverterChar : DeserializeConverter
+    {
+        override public object OnDeserialize(SerializeReader reader, string s, Type t)
+        {
+            if (s == null || s.Length == 0) return null;
+            return s[0];
+        }
+    }
+
+    class DeserializeConverterEnum : DeserializeConverter
+    {
+        override public object OnDeserialize(SerializeReader reader, string s, Type t)
+        {
+            return Enum.Parse(t, s, true);
+        }
+    }
+
     class DeserializeConverterInt : DeserializeConverter
     {
-        override public object OnDeserialize(SerializeReader reader, string s)
+        override public object OnDeserialize(SerializeReader reader, string s, Type t)
         {
             int i;
             if (int.TryParse(s, out i))
@@ -41,7 +58,7 @@ namespace MMogri.Serialization
 
     class DeserializeConverterFloat : DeserializeConverter
     {
-        override public object OnDeserialize(SerializeReader reader, string s)
+        override public object OnDeserialize(SerializeReader reader, string s, Type t)
         {
             float f;
             if (float.TryParse(s, out f))
@@ -52,18 +69,18 @@ namespace MMogri.Serialization
 
     class DeserializeConverterShort : DeserializeConverter
     {
-        override public object OnDeserialize(SerializeReader reader, string s)
+        override public object OnDeserialize(SerializeReader reader, string s, Type t)
         {
-            short t;
-            if (short.TryParse(s, out t))
-                return t;
+            short st;
+            if (short.TryParse(s, out st))
+                return st;
             return 0;
         }
     }
 
     class DeserializeConverterByte : DeserializeConverter
     {
-        override public object OnDeserialize(SerializeReader reader, string s)
+        override public object OnDeserialize(SerializeReader reader, string s, Type t)
         {
             byte b;
             if (byte.TryParse(s, out b))
@@ -74,7 +91,7 @@ namespace MMogri.Serialization
 
     class DeserializeConverterBoolean : DeserializeConverter
     {
-        override public object OnDeserialize(SerializeReader reader, string s)
+        override public object OnDeserialize(SerializeReader reader, string s, Type t)
         {
             bool b;
             if (bool.TryParse(s, out b))
@@ -83,22 +100,34 @@ namespace MMogri.Serialization
         }
     }
 
+    class DeserializeConverterGuid : DeserializeConverter
+    {
+        override public object OnDeserialize(SerializeReader reader, string s, Type t)
+        {
+            Guid g;
+            if (Guid.TryParse(s, out g))
+                return g;
+            return Guid.Empty;
+        }
+    }
+
     class DeserializeConverterList : DeserializeConverter
     {
-        override public object OnDeserialize(SerializeReader reader, string s)
+        override public object OnDeserialize(SerializeReader reader, string s, Type t)
         {
             //read list here!
 
             using (StringReader r = new StringReader(s))
             {
-                int length = (int)reader.Test(reader.ReadNext(r), typeof(int));
-                string typeName = (string)reader.Test(reader.ReadNext(r), typeof(string));
-                Type t = Type.GetType(typeName);
-                IList list = (IList)CreateGenericReferenceType(typeof(List<>), new Type[] { t });
+                int length = (int)reader.DeserializeLine(reader.ReadNext(r), typeof(int));
+
+                IList list = (IList)Activator.CreateInstance(t);
+
+                Type arg = t.GetGenericArguments()[0];
 
                 for (int i = 0; i < length; i++)
                 {
-                    list.Add(reader.Test(reader.ReadNext(r), t));
+                    list.Add(reader.DeserializeLine(reader.ReadNext(r), arg));
                 }
 
                 return list;
@@ -108,27 +137,48 @@ namespace MMogri.Serialization
 
     class DeserializeConverterDictionary : DeserializeConverter
     {
-        override public object OnDeserialize(SerializeReader reader, string s)
+        override public object OnDeserialize(SerializeReader reader, string s, Type t)
         {
             //read list here!
 
             using (StringReader r = new StringReader(s))
             {
-                int length = (int)reader.Test(reader.ReadNext(r), typeof(int));
-                string typeName0 = (string)reader.Test(reader.ReadNext(r), typeof(string));
-                Type t0 = Type.GetType(typeName0);
+                int length = (int)reader.DeserializeLine(reader.ReadNext(r), typeof(int));
 
-                string typeName1 = (string)reader.Test(reader.ReadNext(r), typeof(string));
-                Type t1 = Type.GetType(typeName1);
+                IDictionary dict = (IDictionary)Activator.CreateInstance(t);
+                Type[] typeArgs = t.GetGenericArguments();
 
-                IDictionary dict = (IDictionary)CreateGenericReferenceType(typeof(Dictionary<,>), new Type[] { t0, t1 });
+
+                //IDictionary dict = (IDictionary)CreateGenericReferenceType(typeof(Dictionary<,>), new Type[] { t0, t1 });
 
                 for (int i = 0; i < length; i++)
                 {
-                    dict.Add(reader.Test(reader.ReadNext(r), t0), reader.Test(reader.ReadNext(r), t1));
+                    object o0 = reader.DeserializeLine(reader.ReadNext(r), typeArgs[0]);
+                    object o1 = reader.DeserializeLine(reader.ReadNext(r), typeArgs[1]);
+                    dict.Add(o0, o1);
                 }
 
                 return dict;
+            }
+        }
+    }
+
+    class DeserializeConverterArray : DeserializeConverter
+    {
+        override public object OnDeserialize(SerializeReader reader, string s, Type t)
+        {
+            using (StringReader r = new StringReader(s))
+            {
+                int length = (int)reader.DeserializeLine(reader.ReadNext(r), typeof(int));
+
+                Array arr = (Array)Activator.CreateInstance(t, length);
+
+                for (int i = 0; i < length; i++)
+                {
+                    arr.SetValue(reader.DeserializeLine(reader.ReadNext(r), t.GetElementType()), i);
+                }
+
+                return arr;
             }
         }
     }

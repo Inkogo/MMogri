@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-
-namespace MMogri.Scripting
+﻿namespace MMogri.Scripting
 {
     [System.Serializable]
     public abstract class ScriptableObject : ScriptableDataContainer

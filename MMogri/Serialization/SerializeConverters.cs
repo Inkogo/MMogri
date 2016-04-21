@@ -14,7 +14,7 @@ namespace MMogri.Serialization
             writer.Write(o);
         }
     }
-
+    
     class SerializeConverterList : SerializeConverter
     {
         override public void OnSerialize(SerializeWriter writer, object o)
@@ -24,7 +24,6 @@ namespace MMogri.Serialization
             {
                 writer.WriteStart();
                 writer.WriteEntry("Length", list.Count);
-                writer.WriteEntry("Type", list.GetType().GetGenericArguments()[0].FullName);
 
                 for (int i = 0; i < list.Count; i++)
                 {
@@ -39,16 +38,15 @@ namespace MMogri.Serialization
     {
         override public void OnSerialize(SerializeWriter writer, object o)
         {
-            object[] arr = (object[])o;
+            System.Array arr = (System.Array)o;
             if (arr != null)
             {
                 writer.WriteStart();
                 writer.WriteEntry("Length", arr.Length);
-                //writer.WriteEntry("Type", arr.G);
 
                 for (int i = 0; i < arr.Length; i++)
                 {
-                    writer.WriteEntry("Value_" + i.ToString(), arr[i]);
+                    writer.WriteEntry("Value_" + i.ToString(), arr.GetValue(i));
                 }
                 writer.WriteEnd();
             }
@@ -64,8 +62,6 @@ namespace MMogri.Serialization
             {
                 writer.WriteStart();
                 writer.WriteEntry("Length", dict.Count);
-                writer.WriteEntry("Key_Type", dict.GetType().GetGenericArguments()[0].FullName);
-                writer.WriteEntry("Value_Type", dict.GetType().GetGenericArguments()[1].FullName);
 
                 IEnumerator keys = dict.Keys.GetEnumerator();
                 IEnumerator values = dict.Values.GetEnumerator();

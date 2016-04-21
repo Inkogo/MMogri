@@ -14,6 +14,8 @@ namespace MMogri.Serialization
             {typeof(int), new SerializeConverterValueType() },
             {typeof(bool), new SerializeConverterValueType() },
             {typeof(string), new SerializeConverterValueType() },
+            {typeof(char), new SerializeConverterValueType() },
+            {typeof(Enum), new SerializeConverterValueType() },
             {typeof(byte), new SerializeConverterValueType() },
             {typeof(Guid), new SerializeConverterValueType() },
             {typeof(Array), new SerializeConverterArray() },
@@ -29,7 +31,7 @@ namespace MMogri.Serialization
             stringB = new StringBuilder();
         }
 
-        public void Serialize<T>(string path, T t) where T : new()
+        public void Serialize<T>(string path, T t)/* where T : new()*/
         {
             using (StreamWriter writer = new StreamWriter(path))
             {

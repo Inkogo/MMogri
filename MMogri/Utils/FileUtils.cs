@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.IO;
 using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Serialization;
 using System.Xml;
-using System.IO;
+using System.Xml.Serialization;
 
 namespace MMogri.Utils
 {
@@ -44,6 +40,18 @@ namespace MMogri.Utils
                     return (T)s.Deserialize(new XmlTextReader(stream));
                 }
             }
+        }
+
+        public static void SaveToMog<T>(T t, string path) where T : new()
+        {
+            Serialization.SerializeWriter writer = new Serialization.SerializeWriter();
+            writer.Serialize<T>(path, t);
+        }
+
+        public static T LoadFromMog<T>(string path) where T : new()
+        {
+            Serialization.SerializeReader reader = new Serialization.SerializeReader();
+            return (T)reader.Deserialize<T>(path);
         }
     }
 }

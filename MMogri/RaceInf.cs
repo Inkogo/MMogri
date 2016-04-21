@@ -11,5 +11,12 @@ namespace MMogri.Gameplay
     {
         public string name;
         public int maxAge;
+
+        public RaceInf () { }
+
+        public RaceInf (string n, int age) {
+            name = n;
+            maxAge = age;
+        }
     }
 }

@@ -30,10 +30,12 @@ namespace MMogri
             items = TryLoad<Item>(fullPath, "Items");
             quests = TryLoad<Quest>(fullPath, "Quests");
             playerStates = TryLoad<PlayerState>(fullPath, "PlayerStates");
-            keybinds = TryLoad<Keybind[]>(fullPath, "Keybinds");
+            //keybinds = TryLoad<Keybind[]>(fullPath, "Keybinds");
+
+            Debugging.Debug.Log("AAAAH");
         }
 
-        Dictionary<string, T> TryLoad<T>(string path, string sub) /*where T*/ /*: new()*/
+        Dictionary<string, T> TryLoad<T>(string path, string sub) where T: new()
         {
             Dictionary<string, T> t = new Dictionary<string, T>();
 
@@ -41,27 +43,28 @@ namespace MMogri
             Directory.CreateDirectory(fullPath);
 
             string[] files = Directory.GetFiles(fullPath)
-                             .Where(p => p.EndsWith(".xml"))
+                             .Where(p => p.EndsWith(".mog"))
                              .ToArray();
             if (files.Length == 0)
             {
-                T def = default(T);
-                string p = Path.Combine(fullPath, "default.xml");
+                T def = new T();
+                string p = Path.Combine(fullPath, "default.mog");
                 Save<T>(def, p);
                 t.Add(p, def);
             }
 
             foreach (string p in files)
             {
-                t.Add(p, FileUtils.LoadFromXml<T>(p));
+                //t.Add(p, FileUtils.LoadFromXml<T>(p));
+                t.Add(p, FileUtils.LoadFromMog<T>(p));
             }
 
             return t;
         }
 
-        void Save<T>(T t, string path)
+        void Save<T>(T t, string path) where T : new()
         {
-            FileUtils.SaveToXml<T>(t, path);
+            FileUtils.SaveToMog<T>(t, path);
         }
 
         public Map GetMap(Guid id)

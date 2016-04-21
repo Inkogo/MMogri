@@ -8,12 +8,6 @@ namespace MMogri.Gameplay
 {
     class Inventory
     {
-        public struct ItemSlot {
-            public byte itemId;
-            public byte numb;
-            public byte addData;
-        }
-
         public List<ItemSlot> slots;
     }
 }

@@ -38,8 +38,8 @@ namespace MMogri
             clientUpdates = new ConcurrentStack<ClientUpdate>();
             cmdHandler = new CmdConsole();
 
-            loader.Load(serverPath);
-            login = new LoginHandler(serverPath);
+            loader.Load(ServerDirectory);
+            login = new LoginHandler(ServerDirectory);
 
             lua = new LuaHandler();
             lua.RegisterGlobalClass("Core", core);
@@ -55,7 +55,7 @@ namespace MMogri
                 foreach (Guid g in activePlayers.Values.Select(x => x.mapId).Distinct().ToList())
                 {
                     Map m = loader.GetMap(g);
-                    foreach (Entity e in m.entities)
+                    foreach (Entity e in m.localEntities)
                     {
                         e.OnTick();
                     }
@@ -292,6 +292,14 @@ namespace MMogri
                 w.Write(u.Length);
                 w.Write(u);
             });
+        }
+
+        string ServerDirectory
+        {
+            get
+            {
+                return Path.GetDirectoryName(serverPath);
+            }
         }
     }
 }

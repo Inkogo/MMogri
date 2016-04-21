@@ -13,17 +13,14 @@ namespace MMogri.Serialization
             {typeof(int), new DeserializeConverterInt() },
             {typeof(string), new DeserializeConverterString() },
             {typeof(bool), new DeserializeConverterBoolean() },
-                        {typeof(byte), new DeserializeConverterByte() },
+            {typeof(byte), new DeserializeConverterByte() },
+            {typeof(char), new DeserializeConverterChar() },
+            {typeof(Enum), new DeserializeConverterEnum() },
+            {typeof(Guid), new DeserializeConverterGuid() },
             {typeof(List<>), new DeserializeConverterList() },
-                        {typeof(Dictionary<,>), new DeserializeConverterDictionary() },
+            {typeof(Dictionary<,>), new DeserializeConverterDictionary() },
+            {typeof(Array), new DeserializeConverterArray() },
         };
-
-        const char delimeter = ';';
-
-        public SerializeReader()
-        {
-        }
-
 
         public T Deserialize<T>(string path) where T : new()
         {
@@ -33,8 +30,46 @@ namespace MMogri.Serialization
             }
         }
 
-        //clean up this mess!
-        public object DeserializeObject(string o, Type t)
+        //creates an object of Type t and deserializes all lines of string o. 
+        public object DeserializeObject(string s, Type nt)
+        {
+            if (s == "null")
+                return null;
+
+            foreach (Type t in converters.Keys)
+            {
+                if (nt.IsSubclassOf(t) || (nt.IsGenericType && nt.GetGenericTypeDefinition() == t) || nt == t)
+                {
+                    return converters[t].OnDeserialize(this, s, nt);
+                }
+            }
+            return DeserializeValue(s, nt);
+        }
+
+        //takes a line zB "i=3" and deserializes it to an object of Type t
+        public object DeserializeLine(string s, Type t)
+        {
+            string member = ReadMember(s);
+            string value = ReadValue(s);
+            if (member != null && value != null)
+            {
+                return DeserializeObject(value, t);
+            }
+            return null;
+        }
+
+        //takes member and value and assigns it to an object via reflection
+        public MemberInfo DeserializeComplex(string s, Type t)
+        {
+            string member = ReadMember(s);
+            MemberInfo m = t.GetMember(member, BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy)[0];
+            if (m.GetCustomAttribute<System.NonSerializedAttribute>() != null) return null;
+
+            return m;
+        }
+
+        //takes a value string zB "5" and converts it into an object of Type t
+        public object DeserializeValue(string o, Type t)
         {
             object boxed = Activator.CreateInstance(t);
             using (StringReader reader = new StringReader(o))
@@ -42,76 +77,111 @@ namespace MMogri.Serialization
                 while (reader.Peek() >= 0)
                 {
                     string s = ReadNext(reader);
-                    if (s.Length == 0) break;
-
-                    if (s[0] == '-') continue;
-
-                    int ind = s.IndexOf('=');
-                    if (ind >= 0)
-                    {
-                        string member = s.Substring(0, ind);
-                        string value = s.Substring(ind + 1, s.Length - ind - 1);
-
-                        MemberInfo m = t.GetMember(member, BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy)[0];
-                        if (m.GetCustomAttribute<System.NonSerializedAttribute>() != null) continue;
-
-                        if (m.MemberType == MemberTypes.Field)
-                        {
-                            object n = DeserializeValue(value, ((FieldInfo)m).FieldType);
-                            ((FieldInfo)m).SetValue(boxed, n);
-                        }
-                    }
+                    if (s == string.Empty) break;
+                    //PROBLEM!!!
+                    //I get the target type of complex variable from deserializeComplex.
+                    //I need the type for deserialize line!
+                    //I also need the value from deserialieLine for writing into complex!
+                    MemberInfo i = DeserializeComplex(s, t);
+                    object n = DeserializeLine(s, ((FieldInfo)i).FieldType);
+                    ((FieldInfo)i).SetValue(boxed, n);
                 }
-
                 return boxed;
             }
         }
 
-        //meeeeeessssssyyyyyy
-        public object Test(string s, Type t)
+        public string ReadMember(string s)
         {
             if (s.Length == 0 || s[0] == '-') return null;
 
             int ind = s.IndexOf('=');
             if (ind >= 0)
             {
-                string value = s.Substring(ind + 1, s.Length - ind - 1);
-
-                return DeserializeValue(value, t);
+                return s.Substring(0, ind);
             }
             return null;
         }
 
-        public object DeserializeValue(string s, Type nt)
+        public string ReadValue(string s)
         {
-            foreach (Type t in converters.Keys)
+            if (s.Length == 0 || s[0] == '-') return null;
+
+            int ind = s.IndexOf('=');
+            if (ind >= 0)
             {
-                if (nt.IsSubclassOf(t) || (nt.IsGenericType && nt.GetGenericTypeDefinition() == t) || nt == t)
-                {
-                    return converters[t].OnDeserialize(this, s);
-                }
+                return s.Substring(ind + 1, s.Length - ind - 1);
             }
-            return DeserializeObject(s, nt);
+            return null;
         }
+
 
         //replace this with state machine to fix N depth problems!
         public string ReadNext(StringReader reader)
         {
             StringBuilder b = new StringBuilder();
-            char? outCase = null;
+
+            int layer = 0;
+            bool val = false;
+
             while (reader.Peek() >= 0)
             {
                 char c = (char)reader.Read();
 
-                if (c == '\n' || c == '\r') { continue; }
-                if (outCase != '"' && (c == ' ')) { continue; }
-                else if (outCase != null && c == (char)outCase) { outCase = null; continue; }
-                else if (outCase != null && c != (char)outCase) { }
-                else if (c == '"') { outCase = '"'; continue; }
-                else if (c == '{') { outCase = '}'; continue; }
-                else if (outCase == null && c == delimeter) { return b.ToString(); }
+                //STATE: DEEP
+                if (layer > 0)
+                {
+                    if (c == '{')
+                    {
+                        layer++;
+                    }
+                    if (c == '}')
+                    {
+                        layer--;
+                        if (layer == 0) continue;
+                    }
+                }
+                //STATE: VAL
+                else if (val)
+                {
+                    if (c == '\n' || c == '\r')
+                    {
+                        continue;
+                    }
+                    if (c == '"')
+                    {
+                        val = false;
+                        continue;
+                    }
+                }
+                //STATE: DEFAULT
+                else
+                {
+                    if (c == '\n' || c == '\r')
+                    {
+                        continue;
+                    }
+                    if (c == ' ')
+                    {
+                        continue;
+                    }
+                    if (c == '{')
+                    {
+                        layer++;
+                        continue;
+                    }
+                    if (c == '"')
+                    {
+                        val = true;
+                        continue;
+                    }
+                    if (layer == 0 && c == ';')
+                    {
+                        return b.ToString();
+                    }
+                }
 
                 b.Append(c);
+
             }
             return b.ToString();
         }

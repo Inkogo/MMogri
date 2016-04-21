@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using MMogri.Input;
 using MMogri.Renderer;
-using MMogri.Input;
+using System;
 
 namespace MMogri
 {
