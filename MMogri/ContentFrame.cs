@@ -75,7 +75,5 @@ namespace MMogri
                 window.SetNext(Environment.NewLine);
             }
         }
-
-        abstract public void Start();
     }
 }

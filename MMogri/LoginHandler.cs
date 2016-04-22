@@ -80,6 +80,7 @@ namespace MMogri.Security
                 y = y,
                 lvl = 1,
                 exp = 0,
+                playerState = "",
                 stats = new CharacterStats(),
             };
 

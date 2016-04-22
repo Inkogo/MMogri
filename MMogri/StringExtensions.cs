@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace MMogri
 {
@@ -34,6 +32,13 @@ namespace MMogri
         {
             var addr = new System.Net.Mail.MailAddress(s);
             return addr.Address == s;
+        }
+
+        public static string NormalizePath(this string path)
+        {
+            return Path.GetFullPath(new Uri(path).LocalPath)
+                       .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                       .ToUpperInvariant();
         }
     }
 }

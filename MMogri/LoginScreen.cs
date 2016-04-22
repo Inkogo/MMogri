@@ -12,13 +12,7 @@ namespace MMogri
         {
             client = c;
         }
-
-        override public void Start()
-        {
-            //DrawFrame(2, 2, window.sizeX - 4, window.sizeY - 4);
-            //window.SetEditMode(true);
-        }
-
+        
         public void LoginAccount()
         {
             Console.WriteLine("[J] Join Account");

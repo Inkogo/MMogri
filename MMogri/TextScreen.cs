@@ -13,12 +13,12 @@ namespace MMogri
         public TextScreen(GameWindow w, InputHandler i) : base(w, i)
         { }
 
-        override public void Start()
-        {
-            SetFrame(6, window.sizeY - 10, window.sizeX - 12, 7);
+        //override public void Start()
+        //{
+        //    SetFrame(6, window.sizeY - 10, window.sizeX - 12, 7);
 
-            window.SetLine("Farmer Joe", posX + 4, posY);
-            window.SetRect("Hey there traveler! Nice day, itn't it?", posX + 1, posY + 1, width - 2, height - 2);
-        }
+        //    window.SetLine("Farmer Joe", posX + 4, posY);
+        //    window.SetRect("Hey there traveler! Nice day, itn't it?", posX + 1, posY + 1, width - 2, height - 2);
+        //}
     }
 }

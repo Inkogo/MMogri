@@ -10,11 +10,13 @@ namespace MMogri
 {
     class ClientMain
     {
-        public event EventHandler OnDisconnect;
+        event EventHandler OnDisconnect;
 
         ClientInf clientInf;
         string clientPath;
-        Dictionary<string, Keybind[]> loadedKeybinds;
+
+        Dictionary<string, string> keybindPaths;
+        List<Keybind> keybinds;
 
         GameWindow window;
         InputHandler input;
@@ -23,6 +25,7 @@ namespace MMogri
         MapScreen mapScreen;
 
         ClientGameState gameState;
+        bool clientStateChanged;
         bool inputLock;
         bool textParser;
         bool isWriting;
@@ -37,7 +40,8 @@ namespace MMogri
 
             loginScreen = new LoginScreen(window, input, this);
             mapScreen = new MapScreen(window, input);
-            loadedKeybinds = new Dictionary<string, Keybind[]>();
+            keybindPaths = new Dictionary<string, string>();
+            keybinds = new List<Keybind>();
             gameState = new ClientGameState();
 
             OnDisconnect += new EventHandler(OnClientClose);
@@ -47,7 +51,7 @@ namespace MMogri
 
         public void ClientTick()
         {
-            if (CurrentKeybinds == null || inputLock) return;
+            if (inputLock) return;
 
             if (textParser)
             {
@@ -64,7 +68,7 @@ namespace MMogri
             else
             {
                 input.CatchInput();
-                foreach (Keybind b in CurrentKeybinds)
+                foreach (Keybind b in keybinds)
                 {
                     if (input.GetKey(b.key, b.altKey))
                     {
@@ -78,6 +82,13 @@ namespace MMogri
                     ToggleTextParser();
                 else if (input.GetKey(KeyCode.F2))
                     ListAllKeybinds();
+            }
+            if (clientStateChanged)
+            {
+                //this is kinda weired :/
+                mapScreen.Init(gameState);
+                mapScreen.UpdateMap();
+                clientStateChanged = false;
             }
         }
 
@@ -99,7 +110,7 @@ namespace MMogri
 
         void ListAllKeybinds()
         {
-            foreach (Keybind k in CurrentKeybinds)
+            foreach (Keybind k in keybinds)
                 Console.WriteLine("[" + k.key + "] " + k.action);
         }
 
@@ -136,31 +147,33 @@ namespace MMogri
                         ClientGameState s = null;
                         r.ReadObject((BinaryReader p) =>
                         {
-                            s = new ClientGameState()
-                            {
-                                mapName = p.ReadString(),
-                            };
+                            int l = p.ReadInt32();
+                            byte[] b = p.ReadBytes(l);
+                            s = new ClientGameState();
+                            s.FromBytes(b);
                         });
+                        gameState = s;
+                        clientStateChanged = true;
 
-                        if (!loadedKeybinds.ContainsKey(s.playerState) && !LoadKeybinds(s.playerState))
+                        if (!LoadKeybinds(s.playerState))
                             RequestDefaultKeybinds();
                     }
                     break;
                 case NetworkResponse.ResponseType.KeybindsInfo:
                     {
                         string n = null;
-                        Keybind[] k = null;
+                        List<Keybind> k = new List<Keybind>();
                         r.ReadObject((BinaryReader p) =>
                         {
                             n = p.ReadString();
-                            k = new Keybind[p.ReadInt32()];
-                            for (int i = 0; i < k.Length; i++)
+                            int l = p.ReadInt32();
+                            for (int i = 0; i < l; i++)
                             {
-                                k[i] = new Keybind(p.ReadString(), (KeyCode)p.ReadInt32(), (KeyCode)p.ReadInt32());
+                                k.Add(new Keybind(p.ReadString(), (KeyCode)p.ReadInt32(), (KeyCode)p.ReadInt32()));
                             }
                         });
 
-                        loadedKeybinds.Add(n, k);
+                        keybinds = k;
                         SaveKeybinds(n, k);
                     }
                     break;
@@ -169,7 +182,7 @@ namespace MMogri
                         inputLock = false;
                         Console.WriteLine("Change! " + System.DateTime.Now.ToString("mm:ss:ff"));
 
-                        //mapScreen.UpdateMap();
+                        clientStateChanged = true;
                     }
                     break;
             }
@@ -299,40 +312,30 @@ namespace MMogri
             });
         }
 
-        void SaveClientInf()
+        void SaveKeybinds(string playerState, List<Keybind> k)
         {
-            Utils.FileUtils.SaveToMog<ClientInf>(clientInf, clientPath);
-        }
+            string path = Path.Combine(ClientDirectory, "Keybinds");
+            Directory.CreateDirectory(path);
 
-        //not sure if I like this...
-        void SaveKeybinds(string playerState, Keybind[] k)
-        {
-            string path = Path.Combine(ClientDirectory, playerState + ".xml");
-            FileUtils.SaveToXml<Keybind[]>(k, path);
-            clientInf.keybinds.Add(playerState, path);
+            path = Path.Combine(path, "keys_" + playerState + ".mog");
+            FileUtils.SaveToMog<List<Keybind>>(k, path);
 
-            SaveClientInf();
+            keybindPaths.Add(playerState, path);
+            FileUtils.SaveToMog<Dictionary<string, string>>(keybindPaths, Path.Combine(ClientDirectory, "KeybindPaths.mog"));
         }
 
         bool LoadKeybinds(string playerState)
         {
-            if (clientInf.keybinds.ContainsKey(playerState))
+            string path = Path.Combine(ClientDirectory, "KeybindPaths.mog");
+            if (!File.Exists(path)) return false;
+            keybindPaths = Utils.FileUtils.LoadFromMog<Dictionary<string, string>>(path);
+            if (keybindPaths.ContainsKey(playerState))
             {
-                loadedKeybinds.Add(playerState, FileUtils.LoadFromXml<Keybind[]>(clientInf.keybinds[playerState]));
+                keybinds = FileUtils.LoadFromMog<List<Keybind>>(keybindPaths[playerState]);
                 return false;
             }
             else
                 return false;
-        }
-
-        Keybind[] CurrentKeybinds
-        {
-            get
-            {
-                if (loadedKeybinds != null && gameState != null && gameState.playerState != null && loadedKeybinds.ContainsKey(gameState.playerState))
-                    return loadedKeybinds[gameState.playerState];
-                return null;
-            }
         }
 
         string ClientDirectory

@@ -41,8 +41,7 @@ namespace MMogri
             loader.Load(ServerDirectory);
             login = new LoginHandler(ServerDirectory);
 
-            lua = new LuaHandler();
-            lua.RegisterGlobalClass("Core", core);
+            LuaHandler.Instance.RegisterGlobalClass("Core", core);
             //lua.Run(Path.Combine(ServerPath, "testLua.lua"));       //make this nicer!
 
             MMogri.Network.NetworkHandler.Instance.StartServer(serverInf.port, this);
@@ -162,14 +161,14 @@ namespace MMogri
                 case NetworkRequest.RequestType.GetKeybinds:
                     {
                         //0=playerState
-                        string p = loader.GetPlayerState(r.requestParams[0]).keybindPath;
-                        RespondKeybinds(loader.GetKeybindsByPath(p), g);
+                        PlayerState s = loader.GetPlayerState(activePlayers[g].playerState);
+                        RespondKeybinds(s.name, loader.GetKeybindsByPath(s.keybindPath), g);
                     }
                     break;
                 case NetworkRequest.RequestType.PlayerInput:
                     {
                         //0-n=stringParams
-                        loader.GetPlayerState(activePlayers[g].playerState).OnAction(r.requestAction, new object[] { activePlayers[g] }.Concat(r.requestParams));
+                        loader.GetPlayerState(activePlayers[g].playerState).OnAction(r.requestAction, new object[] { activePlayers[g] }.Concat(r.requestParams).ToArray());
                     }
                     break;
                 case NetworkRequest.RequestType.ClientMessage:
@@ -252,7 +251,7 @@ namespace MMogri
             NetworkHandler.Instance.SendNetworkResponse(g, p);
         }
 
-        void RespondKeybinds(Keybind[] keybinds, Guid g)
+        void RespondKeybinds(string playState, Keybind[] keybinds, Guid g)
         {
             NetworkResponse p = new NetworkResponse();
             p.type = NetworkResponse.ResponseType.KeybindsInfo;
@@ -260,7 +259,7 @@ namespace MMogri
                 p.error = NetworkResponse.ErrorCode.DataNotFound;
             p.AppendObject((BinaryWriter w) =>
             {
-                w.Write(activePlayers[g].playerState);
+                w.Write(playState);
                 w.Write(keybinds.Length);
                 foreach (Keybind b in keybinds)
                 {

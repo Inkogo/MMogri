@@ -9,8 +9,6 @@ namespace MMogri
         public int port;
         public string name;
 
-        public Dictionary<string, string> keybinds;
-
         public ClientInf() { }
 
         public ClientInf(string ip, int port, string name)

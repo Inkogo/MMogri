@@ -9,11 +9,6 @@ namespace MMogri
 
         public StartScreen(GameWindow w, InputHandler i) : base(w, i) { }
 
-        override public void Start()
-        {
-
-        }
-
         public int ShowScreen()
         {
             DrawFrame(2, window.CenterY - 2, window.sizeX - 4, 4);

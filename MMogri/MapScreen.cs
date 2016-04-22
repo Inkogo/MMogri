@@ -10,8 +10,10 @@ namespace MMogri
         public MapScreen(GameWindow w, InputHandler i) : base(w, i)
         { }
 
-        public override void Start()
+        public void Init(ClientGameState g)
         {
+            gameState = g;
+
             DrawFrame(1, 2, window.sizeX - 20, window.sizeY - 4);
 
             window.SetLine(gameState.mapName, posX + width - 5 - gameState.mapName.Length, posY);

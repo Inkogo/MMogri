@@ -16,7 +16,7 @@ namespace MMogri
         Dictionary<string, Item> items;
         Dictionary<string, Quest> quests;
         Dictionary<string, PlayerState> playerStates;
-        Dictionary<string, Keybind[]> keybinds;
+        Dictionary<string, List<Keybind>> keybinds;
 
         Tileset tileset;
 
@@ -30,12 +30,10 @@ namespace MMogri
             items = TryLoad<Item>(fullPath, "Items");
             quests = TryLoad<Quest>(fullPath, "Quests");
             playerStates = TryLoad<PlayerState>(fullPath, "PlayerStates");
-            //keybinds = TryLoad<Keybind[]>(fullPath, "Keybinds");
-
-            Debugging.Debug.Log("AAAAH");
+            keybinds = TryLoad<List<Keybind>>(fullPath, "Keybinds");
         }
 
-        Dictionary<string, T> TryLoad<T>(string path, string sub) where T: new()
+        Dictionary<string, T> TryLoad<T>(string path, string sub) where T : new()
         {
             Dictionary<string, T> t = new Dictionary<string, T>();
 
@@ -55,7 +53,6 @@ namespace MMogri
 
             foreach (string p in files)
             {
-                //t.Add(p, FileUtils.LoadFromXml<T>(p));
                 t.Add(p, FileUtils.LoadFromMog<T>(p));
             }
 
@@ -121,9 +118,27 @@ namespace MMogri
             return playerStates.First().Value;
         }
 
-        public Keybind[] GetKeybindsByPath (string p)
+        public Keybind[] GetKeybindsByPath(string p)
         {
-            return keybinds[p];
+            if (p != null)
+            {
+                string path = ContainsPath(keybinds.Keys, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, p));
+                if (path != null)
+                    return keybinds[path].ToArray();
+            }
+            return new Keybind[0];
+        }
+
+        string ContainsPath(IEnumerable<string> paths, string p)
+        {
+            string normalizedP = p.NormalizePath();
+            foreach (string s in paths)
+            {
+                string t = s.NormalizePath();
+                if (t == normalizedP)
+                    return s;
+            }
+            return null;
         }
     }
 }

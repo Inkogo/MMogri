@@ -14,10 +14,6 @@ namespace MMogri
             this.targetFile = targetFile;
         }
 
-        public override void Start()
-        {
-        }
-
         public string BrowseDirectory(string dir, int chunk = 0)
         {
             string[] dirs = Directory.GetDirectories(dir);
@@ -33,12 +29,12 @@ namespace MMogri
                     DirectoryInfo inf = new DirectoryInfo(dirs[n]);
                     Console.WriteLine("[" + (i + 1) + "]" + inf.Name);
                 }
-                else if (n == dirs.Length + 1 && File.Exists(file))
-                {
-                    Console.ForegroundColor = ConsoleColor.Green;
-                    Console.WriteLine("[S] Run File");
-                    Console.ForegroundColor = ConsoleColor.Gray;
-                }
+            }
+            if (File.Exists(file))
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("[S] Run File");
+                Console.ForegroundColor = ConsoleColor.Gray;
             }
 
             string outDir = null;

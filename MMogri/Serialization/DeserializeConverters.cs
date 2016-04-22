@@ -114,9 +114,7 @@ namespace MMogri.Serialization
     class DeserializeConverterList : DeserializeConverter
     {
         override public object OnDeserialize(SerializeReader reader, string s, Type t)
-        {
-            //read list here!
-
+        {   
             using (StringReader r = new StringReader(s))
             {
                 int length = (int)reader.DeserializeLine(reader.ReadNext(r), typeof(int));
@@ -139,17 +137,12 @@ namespace MMogri.Serialization
     {
         override public object OnDeserialize(SerializeReader reader, string s, Type t)
         {
-            //read list here!
-
             using (StringReader r = new StringReader(s))
             {
                 int length = (int)reader.DeserializeLine(reader.ReadNext(r), typeof(int));
 
                 IDictionary dict = (IDictionary)Activator.CreateInstance(t);
                 Type[] typeArgs = t.GetGenericArguments();
-
-
-                //IDictionary dict = (IDictionary)CreateGenericReferenceType(typeof(Dictionary<,>), new Type[] { t0, t1 });
 
                 for (int i = 0; i < length; i++)
                 {

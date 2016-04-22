@@ -55,13 +55,13 @@ namespace MMogri.Scripting
             if (lua.ContainsKey(path)) return;
 
             Lua l = new Lua();
+            lua.Add(path, l);
+
             InitLua(l, path);
             foreach (string s in globalClasses.Keys)
             {
-                RegisterClass(s, s, globalClasses[s]);
+                RegisterClass(path, s, globalClasses[s]);
             }
-
-            lua.Add(path, l);
         }
 
         public object[] CallFunc(string n, string func, object[] o)

@@ -6,18 +6,16 @@
         public string luaPath;
         LuaScript lua;
 
-        public ScriptableObject()
-        {
-            if (luaPath != null)
-            {
-                lua = new LuaScript(luaPath);
-            }
-        }
-
         protected object[] CallLuaCallback(string s, params object[] o)
         {
-            if (lua != null && s != null && s != "")
-              return  lua.CallFunc(s, o);
+            if (s != null && s != "" && luaPath != null)
+            {
+                if (lua == null)
+                {
+                    lua = new LuaScript(luaPath);
+                }
+                return lua.CallFunc(s, o);
+            }
             return null;
         }
     }

@@ -35,7 +35,7 @@ namespace MMogri.Serialization
         {
             using (StreamWriter writer = new StreamWriter(path))
             {
-                SerializeObject(t);
+                SerializeValue(t);
 
                 writer.Write(ToString());
             }

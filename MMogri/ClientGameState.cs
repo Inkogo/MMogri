@@ -98,7 +98,16 @@ namespace MMogri
                     mapName = reader.ReadString();
                     mapSizeX = reader.ReadInt32();
                     mapSizeY = reader.ReadInt32();
-                    // .... and so on
+                    posX = reader.ReadInt32();
+                    posY = reader.ReadInt32();
+                    posText = reader.ReadString();
+                    playerState = reader.ReadString();
+                    tiles = new TileVis[mapSizeX * mapSizeY];
+                    for (int i = 0; i < mapSizeX * mapSizeY; i++)
+                    {
+                        TileVis t = new TileVis(reader.ReadBoolean(), reader.ReadInt32(), reader.ReadChar(), reader.ReadInt16());
+                        tiles[i] = t;
+                    }
                 }
             }
         }
