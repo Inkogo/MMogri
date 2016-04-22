@@ -99,6 +99,7 @@
     <Compile Include="GameWindow.cs" />
     <Compile Include="IRenderable.cs" />
     <Compile Include="MapTransitionUpdate.cs" />
+    <Compile Include="PlayerUpdate.cs" />
     <Compile Include="ScriptableDataContainer.cs" />
     <Compile Include="Utils\FileUtils.cs" />
     <Compile Include="GameCore.cs" />

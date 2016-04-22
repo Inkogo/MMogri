@@ -62,7 +62,7 @@ namespace MMogri
             window.Clear();
         }
 
-        public void LoginPlayer(string[] p, Guid account, Guid session)
+        public void LoginPlayer(string[] p, Guid account, string session)
         {
             Console.WriteLine("Logged in Succesfully!");
 

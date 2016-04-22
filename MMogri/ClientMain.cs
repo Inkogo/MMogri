@@ -10,6 +10,8 @@ namespace MMogri
 {
     class ClientMain
     {
+        public event EventHandler OnDisconnect;
+
         ClientInf clientInf;
         string clientPath;
         Dictionary<string, Keybind[]> loadedKeybinds;
@@ -22,8 +24,10 @@ namespace MMogri
 
         ClientGameState gameState;
         bool inputLock;
+        bool textParser;
+        bool isWriting;
 
-        public ClientMain(ClientInf inf, string path, GameWindow window, InputHandler input)
+        public ClientMain(ClientInf inf, string path, GameWindow window, InputHandler input, Action<object, EventArgs> OnClientClose)
         {
             clientInf = inf;
             clientPath = path;
@@ -36,6 +40,8 @@ namespace MMogri
             loadedKeybinds = new Dictionary<string, Keybind[]>();
             gameState = new ClientGameState();
 
+            OnDisconnect += new EventHandler(OnClientClose);
+
             NetworkHandler.Instance.ConnectToServer(System.Net.IPAddress.Parse(inf.ip), inf.port, this);
         }
 
@@ -43,22 +49,58 @@ namespace MMogri
         {
             if (CurrentKeybinds == null || inputLock) return;
 
-            input.CatchInput();
-            foreach (Keybind b in CurrentKeybinds)
+            if (textParser)
             {
-                if (input.GetKey(b.key, b.altKey))
+                if (!isWriting)
                 {
-                    NetworkHandler.Instance.SendNetworkRequest(new NetworkRequest()
+                    isWriting = true;
+                    input.CatchLine((string s) =>
                     {
-                        requestType = NetworkRequest.RequestType.PlayerInput,
-                        requestAction = b.action,
+                        RequestActionCommand(s);
+                        isWriting = false;
                     });
-                    inputLock = true;
                 }
             }
-            //default input
-            if (input.GetKey(KeyCode.H))
-                foreach (Keybind k in CurrentKeybinds) Console.Write("[" + k.key + "] " + k.action);
+            else
+            {
+                input.CatchInput();
+                foreach (Keybind b in CurrentKeybinds)
+                {
+                    if (input.GetKey(b.key, b.altKey))
+                    {
+                        RequestAction(b.action, null);
+                        inputLock = true;
+                    }
+                }
+                if (input.GetKey(KeyCode.Escape))
+                    DisconnectClient();
+                else if (input.GetKey(KeyCode.F1))
+                    ToggleTextParser();
+                else if (input.GetKey(KeyCode.F2))
+                    ListAllKeybinds();
+            }
+        }
+
+        void DisconnectClient()
+        {
+            NetworkHandler.Instance.SendNetworkRequest(new NetworkRequest()
+            {
+                requestType = NetworkRequest.RequestType.Disconnect,
+                requestAction = "none",
+            });
+            NetworkHandler.Instance.DisconnectClient();
+            OnDisconnect(this, null);
+        }
+
+        void ToggleTextParser()
+        {
+            textParser = !textParser;
+        }
+
+        void ListAllKeybinds()
+        {
+            foreach (Keybind k in CurrentKeybinds)
+                Console.WriteLine("[" + k.key + "] " + k.action);
         }
 
         public void ProcessNetworkResponse(NetworkResponse r)
@@ -70,15 +112,15 @@ namespace MMogri
                         if (r.error == NetworkResponse.ErrorCode.None)
                         {
                             string[] allPlayers = null;
-                            Guid sessionId = new Guid();
+                            string sessionToken = null;
                             Guid accountId = new Guid();
 
                             r.ReadObject((BinaryReader p) =>
                             {
-                                allPlayers = new string[p.ReadInt32()]; for (int i = 0; i < allPlayers.Length; i++) allPlayers[i] = p.ReadString(); sessionId = new Guid(p.ReadString()); accountId = new Guid(p.ReadString());
+                                allPlayers = new string[p.ReadInt32()]; for (int i = 0; i < allPlayers.Length; i++) allPlayers[i] = p.ReadString(); sessionToken = p.ReadString(); accountId = new Guid(p.ReadString());
                             });
 
-                            loginScreen.LoginPlayer(allPlayers, accountId, sessionId);      //change this! delegate?
+                            loginScreen.LoginPlayer(allPlayers, accountId, sessionToken);      //change this! delegate?
                         }
                         else
                         {
@@ -91,18 +133,13 @@ namespace MMogri
                     {
                         Console.WriteLine("Successfully joined player!");
 
-                        //serialize clientState for the first time here?
-                        //s.FromBytes()
-                        //string n = null;
                         ClientGameState s = null;
                         r.ReadObject((BinaryReader p) =>
                         {
                             s = new ClientGameState()
                             {
                                 mapName = p.ReadString(),
-
                             };
-                            //n = p.ReadString();
                         });
 
                         if (!loadedKeybinds.ContainsKey(s.playerState) && !LoadKeybinds(s.playerState))
@@ -140,8 +177,6 @@ namespace MMogri
 
         public void OnJoinServer()
         {
-            //loginScreen.Start();
-
             loginScreen.LoginAccount();
         }
 
@@ -173,7 +208,7 @@ namespace MMogri
             });
         }
 
-        public void RequestSpawn(string p, Guid account, Guid sessionId)
+        public void RequestSpawn(string p, Guid account, string sessionId)
         {
             NetworkHandler.Instance.SendNetworkRequest(new NetworkRequest()
             {
@@ -183,12 +218,12 @@ namespace MMogri
             {
                     p,
                     account.ToString(),
-                    sessionId.ToString(),
+                    sessionId,
             }
             });
         }
 
-        public void RequestCreatePlayer(string p, Guid account, Guid sessionId)
+        public void RequestCreatePlayer(string p, Guid account, string sessionId)
         {
             NetworkHandler.Instance.SendNetworkRequest(new NetworkRequest()
             {
@@ -198,12 +233,12 @@ namespace MMogri
             {
                 p,
                 account.ToString(),
-                sessionId.ToString(),
+                sessionId,
             }
             });
         }
 
-        public void RequestChangePassword(Guid oldP, Guid newP, Guid account, Guid sessionId)
+        public void RequestChangePassword(Guid oldP, Guid newP, Guid account, string sessionId)
         {
             NetworkHandler.Instance.SendNetworkRequest(new NetworkRequest()
             {
@@ -214,7 +249,7 @@ namespace MMogri
                 oldP.ToString(),
                 newP.ToString(),
                 account.ToString(),
-                sessionId.ToString(),
+                sessionId,
             }
             });
         }
@@ -241,9 +276,32 @@ namespace MMogri
             });
         }
 
+        public void RequestActionCommand(string s)
+        {
+            if (s == null || s.Length == 0) return;
+
+            int ind = s.IndexOf(' ');
+            if (ind > 0)
+            {
+                string action = s.Substring(0, ind);
+                string arg = s.Substring(ind + 1, s.Length - ind - 1);
+                RequestAction(action, arg.Length == 0 ? null : new string[] { arg });
+            }
+        }
+
+        public void RequestAction(string s, string[] args)
+        {
+            NetworkHandler.Instance.SendNetworkRequest(new NetworkRequest()
+            {
+                requestType = NetworkRequest.RequestType.PlayerInput,
+                requestAction = s,
+                requestParams = args,
+            });
+        }
+
         void SaveClientInf()
         {
-            Utils.FileUtils.SaveToXml<ClientInf>(clientInf, clientPath);
+            Utils.FileUtils.SaveToMog<ClientInf>(clientInf, clientPath);
         }
 
         //not sure if I like this...
@@ -271,7 +329,7 @@ namespace MMogri
         {
             get
             {
-                if (loadedKeybinds.ContainsKey(gameState.playerState))
+                if (loadedKeybinds != null && gameState != null && gameState.playerState != null && loadedKeybinds.ContainsKey(gameState.playerState))
                     return loadedKeybinds[gameState.playerState];
                 return null;
             }

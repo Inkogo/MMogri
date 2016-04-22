@@ -40,6 +40,7 @@ namespace MMogri.Gameplay
             tiles = new Tile[sizeX * sizeY];
             for (int i = 0; i < sizeX * sizeY; i++)
                 tiles[i] = new Tile();
+            localEntities = new List<Entity>();
         }
 
         public Tile this[int x, int y]

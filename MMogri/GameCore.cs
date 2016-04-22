@@ -49,9 +49,18 @@ namespace MMogri.Core
         [LuaFunc]
         public void Teleport(Player p, string map, int x, int y)
         {
+            Guid oldMap = p.mapId;
             p.mapId = loader.GetMap(map).Id;
             p.x = x;
             p.y = y;
+            updateCallback(new MapTransitionUpdate(p.mapId, oldMap, p.Id));
+        }
+
+        [LuaFunc]
+        public void SetPlayerState(Player p, string state)
+        {
+            p.playerState = state;
+            updateCallback(new PlayerUpdate(p.mapId, p.Id, state));
         }
 
         [LuaFunc]

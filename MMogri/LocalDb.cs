@@ -101,7 +101,7 @@ namespace MMogri.Utils
 
             SQLiteCommand dbcmd = dbconn.CreateCommand();
             dbcmd.CommandText = wrapper.SelectCmd(cmd);
-            //Debug.Log( dbcmd.CommandText );
+            //Debug.Log(dbcmd.CommandText);
 
             SQLiteDataReader reader = dbcmd.ExecuteReader();
             while (reader.Read())

@@ -111,11 +111,14 @@ namespace MMogri
 
         public PlayerState GetPlayerState(string s)
         {
-            foreach (PlayerState p in playerStates.Values)
+            if (s != null)
             {
-                if (p.name == s) return p;
+                foreach (PlayerState p in playerStates.Values)
+                {
+                    if (p.name == s) return p;
+                }
             }
-            return null;
+            return playerStates.First().Value;
         }
 
         public Keybind[] GetKeybindsByPath (string p)

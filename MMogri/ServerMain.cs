@@ -284,7 +284,7 @@ namespace MMogri
                                 activePlayers[g].x,
                                 activePlayers[g].y,
                                 loader.GetTileset.GetTileType(m[activePlayers[g].x, activePlayers[g].y].tileTypeId).name,
-                                activePlayers[g].playerState
+                                loader.GetPlayerState(activePlayers[g].playerState).name
                                 ).ToBytes();
 
             p.AppendObject((BinaryWriter w) =>
@@ -292,6 +292,7 @@ namespace MMogri
                 w.Write(u.Length);
                 w.Write(u);
             });
+            NetworkHandler.Instance.SendNetworkResponse(g, p);
         }
 
         string ServerDirectory

@@ -30,7 +30,7 @@ namespace MMogri.Serialization
             }
         }
 
-        //creates an object of Type t and deserializes all lines of string o. 
+        //takes a value string zB "5" and converts it into an object of Type t
         public object DeserializeObject(string s, Type nt)
         {
             if (s == "null")
@@ -68,7 +68,7 @@ namespace MMogri.Serialization
             return m;
         }
 
-        //takes a value string zB "5" and converts it into an object of Type t
+        //creates an object of Type t and deserializes all lines of string o. 
         public object DeserializeValue(string o, Type t)
         {
             object boxed = Activator.CreateInstance(t);
@@ -78,10 +78,7 @@ namespace MMogri.Serialization
                 {
                     string s = ReadNext(reader);
                     if (s == string.Empty) break;
-                    //PROBLEM!!!
-                    //I get the target type of complex variable from deserializeComplex.
-                    //I need the type for deserialize line!
-                    //I also need the value from deserialieLine for writing into complex!
+
                     MemberInfo i = DeserializeComplex(s, t);
                     object n = DeserializeLine(s, ((FieldInfo)i).FieldType);
                     ((FieldInfo)i).SetValue(boxed, n);
@@ -114,8 +111,6 @@ namespace MMogri.Serialization
             return null;
         }
 
-
-        //replace this with state machine to fix N depth problems!
         public string ReadNext(StringReader reader)
         {
             StringBuilder b = new StringBuilder();

@@ -68,25 +68,9 @@ namespace MMogri.Network
             return encoded;
         }
 
-        //[ICmd]
-        //public static void CreateServer(int port)
-        //{
-        //    Instance.StartServer(port);
-        //}
-
-        //[ICmd]
-        //public static void JoinServer(string ip, int port)
-        //{
-        //    IPAddress i;
-        //    if (IPAddress.TryParse(ip, out i))
-        //        Instance.ConnectToServer(i, port);
-        //    else
-        //        Debug.Log("Ip is not valid!");
-        //}
-
-        [Cmd]
-        public void LeaveServer()
+        public void DisconnectClient()
         {
+            connection.sock.Shutdown(SocketShutdown.Both);
             connection.sock.Disconnect(false);
             connection = null;
         }
@@ -107,26 +91,6 @@ namespace MMogri.Network
 
             return a4;
         }
-
-        //[ICmd]
-        //public static void TestRun()
-        //{
-        //    CreateServer(25565);
-        //    //string p = GetPublicIp();
-        //    JoinServer("192.168.0.10", 25565);
-        //}
-
-        //[ICmd]
-        //public static void TestRequest()
-        //{
-        //    NetworkRequest r = new NetworkRequest()
-        //    {
-        //        requestAction = "test abc",
-        //        requestParams = new string[] { "test01", "test02" },
-        //        requestType = NetworkRequest.RequestType.PlayerInput
-        //    };
-        //    Instance.SendNetworkRequest(r);
-        //}
 
         public bool IsClient
         {

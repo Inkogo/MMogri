@@ -30,13 +30,13 @@ namespace MMogri
         {
             if (!File.Exists(PrefPath)) return false;
 
-            _instance = FileUtils.LoadFromXml<UserPreferences>(PrefPath);
+            _instance = FileUtils.LoadFromMog<UserPreferences>(PrefPath);
             return true;
         }
 
         static void SaveUserPreferences()
         {
-            FileUtils.SaveToXml<UserPreferences>(_instance, PrefPath);
+            FileUtils.SaveToMog<UserPreferences>(_instance, PrefPath);
         }
 
         public int windowSizeX = 70;
@@ -46,7 +46,7 @@ namespace MMogri
         {
             get
             {
-                return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "UserPrefs.xml");
+                return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "UserPrefs.mog");
             }
         }
     }

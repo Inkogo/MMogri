@@ -21,7 +21,8 @@ namespace MMogri
         public string getTagCallback;
         public string getColorCallback;
 
-        public TileType () { }
+        public TileType() : this(0, "Default", 'D', Color.White, true, false, 0)
+        { }
 
         public TileType(byte id, string name, char tag, Color color, bool solid, bool translucent, byte lightEmission)
         {

@@ -15,6 +15,9 @@ namespace MMogri.Core
         GameWindow gameWindow;
         InputHandler input;
 
+        ServerMain server;
+        ClientMain client;
+
         List<Action> ticks;
 
         static void Main(string[] args)
@@ -32,48 +35,9 @@ namespace MMogri.Core
 
         public void Start()
         {
-            //string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "test.mog");
-
-            //Serialize
-            //Serialization.TestClass t = new Serialization.TestClass(
-            //    4,
-            //    "bam",
-            //    new List<string>() { "aaah", "beeeh", "ceeeeh" },
-            //    3,
-            //    new Dictionary<string, int>() { { "a", 1 }, { "b", 2 } },
-            //    new Serialization.TestStruct(8)
-            //    );
-
-            //TestClass mp = new TestClass()
-            //{
-            //    races = new List<Gameplay.RaceInf>()
-            //    {
-            //        new Gameplay.RaceInf("abc", 7),
-            //        new Gameplay.RaceInf("aaah", 4),
-            //    },
-            //    name = "Heyoo",
-            //    bytes = new byte[5],
-            //    dict = new Dictionary<int, string>()
-            //    {
-            //        {2, "zwei" },
-            //        {3, "three" },
-            //    },
-            //    map = new Gameplay.Map("Aaaah", 3, 3),
-            //};
-            //Serialization.SerializeWriter w = new Serialization.SerializeWriter();
-            //w.Serialize<TestClass>(path, mp);
-
-            //Deserialize
-            //Serialization.SerializeReader r = new Serialization.SerializeReader();
-            //TestClass mp = r.Deserialize<TestClass>(path);
-            //Debugging.Debug.Log(mp);
-
             // i really dont like this!
             StartScreen startScreen = new StartScreen(gameWindow, input);
             LaunchMode m = (LaunchMode)startScreen.ShowScreen();
-
-            ServerMain server;
-            ClientMain client;
 
             switch (m)
             {
@@ -104,10 +68,10 @@ namespace MMogri.Core
 
         ServerMain InitServer()
         {
-            FileBrowserScreen s = new FileBrowserScreen(gameWindow, input, "serverInf.xml");
+            FileBrowserScreen s = new FileBrowserScreen(gameWindow, input, "serverInf.mog");
             string path = s.BrowseDirectory(AppDomain.CurrentDomain.BaseDirectory);
 
-            ServerInf inf = Utils.FileUtils.LoadFromXml<ServerInf>(path);
+            ServerInf inf = Utils.FileUtils.LoadFromMog<ServerInf>(path);
             ServerMain server = new ServerMain(inf, path, gameWindow);
 
             gameWindow.Clear();
@@ -130,9 +94,9 @@ namespace MMogri.Core
                 {
                     gameWindow.Clear();
 
-                    FileBrowserScreen f = new FileBrowserScreen(gameWindow, input, "clientInf.xml");
+                    FileBrowserScreen f = new FileBrowserScreen(gameWindow, input, "clientInf.mog");
                     path = f.BrowseDirectory(AppDomain.CurrentDomain.BaseDirectory);
-                    inf = Utils.FileUtils.LoadFromXml<ClientInf>(path);
+                    inf = Utils.FileUtils.LoadFromMog<ClientInf>(path);
 
                     break;
                 }
@@ -146,20 +110,26 @@ namespace MMogri.Core
                     string name = Console.ReadLine();
 
                     string p = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, name);
-                    path = Path.Combine(p, "clientInf.xml");
+                    path = Path.Combine(p, "clientInf.mog");
                     inf = new ClientInf(ip, int.Parse(port), name);
                     Directory.CreateDirectory(p);
-                    Utils.FileUtils.SaveToXml<ClientInf>(inf, path);
+                    Utils.FileUtils.SaveToMog<ClientInf>(inf, path);
 
                     break;
                 }
             }
 
-            ClientMain client = new ClientMain(inf, path, gameWindow, input);
+            ClientMain client = new ClientMain(inf, path, gameWindow, input, ClientClose);
 
             gameWindow.Clear();
 
             return client;
+        }
+
+        void ClientClose(object sender, EventArgs a)
+        {
+            ticks.Remove(((ClientMain)sender).ClientTick);
+            client = null;
         }
     }
 }
